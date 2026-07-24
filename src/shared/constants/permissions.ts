@@ -4,3 +4,5 @@ export const PERMISSIONS = {
   NOTIFICATIONS: "notifications",
   FILE_SYSTEM: "filesystem",
 } as const;
+export type Permission =
+  (typeof PERMISSIONS)[keyof typeof PERMISSIONS];
