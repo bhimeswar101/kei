@@ -1,0 +1,1 @@
+export { VoicePlugin } from "./VoicePlugin";
