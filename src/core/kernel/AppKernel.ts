@@ -1,22 +1,19 @@
 // src/core/kernel/AppKernel.ts
 
-import type {
-  AppKernelContract,
-  KernelState,
-} from "./types";
+import type { AppKernelContract, KernelState } from "./types";
 
+import { aiProviderManager, GeminiProvider } from "@/core/ai";
+import { brain } from "@/core/brain";
 import { eventBus } from "@/core/events";
-import { storage } from "@/core/storage";
 import { permissionManager } from "@/core/permissions";
 import { serviceRegistry } from "@/core/services";
+import { storage } from "@/core/storage";
 
 export class AppKernel implements AppKernelContract {
   private state: KernelState = "idle";
 
-  constructor() {}
-
-  start(): void {
-    if (this.state === "running") {
+  async start(): Promise<void> {
+    if (this.state === "running" || this.state === "starting") {
       return;
     }
 
@@ -24,7 +21,7 @@ export class AppKernel implements AppKernelContract {
 
     console.info("🚀 Starting Kei Kernel...");
 
-    // Ensure core systems are initialized
+    // Core infrastructure
     void eventBus;
     void storage;
     void permissionManager;
@@ -35,12 +32,25 @@ export class AppKernel implements AppKernelContract {
     console.info("✓ Permission Manager Ready");
     console.info("✓ Service Registry Ready");
 
+    // AI provider
+    const geminiProvider = new GeminiProvider();
+
+    aiProviderManager.register(geminiProvider);
+    aiProviderManager.setActive(geminiProvider.id);
+
+    console.info("✓ Gemini Provider Registered");
+
+    // Intelligence layer
+    await brain.initialize();
+
+    console.info("✓ Brain Ready");
+
     this.state = "running";
 
     console.info("✅ Kei Kernel Running");
   }
 
-  stop(): void {
+  async stop(): Promise<void> {
     if (this.state !== "running") {
       return;
     }
@@ -49,14 +59,18 @@ export class AppKernel implements AppKernelContract {
 
     console.info("🛑 Stopping Kei Kernel...");
 
+    await brain.shutdown();
+
+    console.info("✓ Brain Stopped");
+
     this.state = "stopped";
 
     console.info("✓ Kei Kernel Stopped");
   }
 
-  restart(): void {
-    this.stop();
-    this.start();
+  async restart(): Promise<void> {
+    await this.stop();
+    await this.start();
   }
 
   getState(): KernelState {

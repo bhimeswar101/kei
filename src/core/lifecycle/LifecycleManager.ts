@@ -1,13 +1,8 @@
-import type {
-  LifecycleContract,
-  LifecycleState,
-} from "./types";
+import type { LifecycleContract, LifecycleState } from "./types";
 
 import { appKernel } from "@/core/kernel";
 
-export class LifecycleManager
-  implements LifecycleContract
-{
+export class LifecycleManager implements LifecycleContract {
   private currentState: LifecycleState = "idle";
 
   state(): LifecycleState {
@@ -25,7 +20,7 @@ export class LifecycleManager
 
     this.currentState = "starting";
 
-    appKernel.start();
+    await appKernel.start();
 
     this.currentState = "running";
   }
@@ -37,7 +32,7 @@ export class LifecycleManager
 
     this.currentState = "stopping";
 
-    appKernel.stop();
+    await appKernel.stop();
 
     this.currentState = "stopped";
   }

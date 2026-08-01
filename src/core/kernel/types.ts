@@ -1,15 +1,13 @@
-export type KernelState =
-  | "idle"
-  | "starting"
-  | "running"
-  | "stopping"
-  | "stopped";
-  export interface AppKernelContract {
-  start(): void;
+// src/core/kernel/types.ts
 
-  stop(): void;
+export type KernelState = "idle" | "starting" | "running" | "stopping" | "stopped";
 
-  restart(): void;
+export interface AppKernelContract {
+  start(): Promise<void>;
+
+  stop(): Promise<void>;
+
+  restart(): Promise<void>;
 
   getState(): KernelState;
 
