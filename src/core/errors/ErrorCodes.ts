@@ -43,6 +43,7 @@ export const ErrorCodes = {
 
   // Automation
   AUTOMATION: "AUTOMATION",
+  BACKGROUND_SERVICE: "BACKGROUND_SERVICE",
 } as const;
 
 export type ErrorCode = (typeof ErrorCodes)[keyof typeof ErrorCodes];

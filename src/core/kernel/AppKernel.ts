@@ -3,7 +3,9 @@
 import type { AppKernelContract, KernelState } from "./types";
 
 import { aiProviderManager, GeminiProvider } from "@/core/ai";
-import { brain } from "@/core/brain";
+import {
+  backgroundServiceManager,
+} from "@/core/background";import { brain } from "@/core/brain";
 import { ErrorCodes, handleError } from "@/core/errors";
 import { eventBus } from "@/core/events";
 import { permissionManager } from "@/core/permissions";
@@ -14,7 +16,10 @@ export class AppKernel implements AppKernelContract {
   private state: KernelState = "idle";
 
   async start(): Promise<void> {
-    if (this.state === "running" || this.state === "starting") {
+    if (
+      this.state === "running" ||
+      this.state === "starting"
+    ) {
       return;
     }
 
@@ -38,16 +43,22 @@ export class AppKernel implements AppKernelContract {
       const geminiProvider = new GeminiProvider();
 
       aiProviderManager.register(geminiProvider);
-
       aiProviderManager.setActive(geminiProvider.id);
 
       console.info("✓ Gemini Provider Registered");
 
       // Intelligence layer
-      await brain.initialize();
+      // Intelligence layer
+await brain.initialize();
 
-      console.info("✓ Brain Ready");
+console.info("✓ Brain Ready");
 
+// Background services
+
+
+await backgroundServiceManager.startAll();
+
+console.info("✓ Background Services Ready");
       this.state = "running";
 
       console.info("✅ Kei Kernel Running");
@@ -74,6 +85,12 @@ export class AppKernel implements AppKernelContract {
 
     try {
       console.info("🛑 Stopping Kei Kernel...");
+
+      // Stop background work before shutting down
+      // the intelligence layer.
+      await backgroundServiceManager.stopAll();
+
+      console.info("✓ Background Services Stopped");
 
       await brain.shutdown();
 
