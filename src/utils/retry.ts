@@ -1,14 +1,45 @@
+import { sleep } from "./sleep";
+
+export interface RetryOptions {
+  retries?: number;
+  delayMs?: number;
+  backoffMultiplier?: number;
+  shouldRetry?: (error: unknown) => boolean;
+}
+
 export async function retry<T>(
   operation: () => Promise<T>,
-  retries = 3,
+  options: RetryOptions = {},
 ): Promise<T> {
-  let lastError: unknown;
+  const {
+    retries = 3,
+    delayMs = 500,
+    backoffMultiplier = 2,
+    shouldRetry = () => true,
+  } = options;
 
-  for (let i = 0; i < retries; i++) {
+  let lastError: unknown;
+  let currentDelay = delayMs;
+
+  for (let attempt = 0; attempt < retries; attempt++) {
     try {
       return await operation();
     } catch (error) {
       lastError = error;
+
+      const hasMoreAttempts =
+        attempt < retries - 1;
+
+      if (
+        !hasMoreAttempts ||
+        !shouldRetry(error)
+      ) {
+        throw error;
+      }
+
+      await sleep(currentDelay);
+
+      currentDelay *= backoffMultiplier;
     }
   }
 

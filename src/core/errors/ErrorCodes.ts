@@ -1,11 +1,20 @@
 export const ErrorCodes = {
   UNKNOWN: "UNKNOWN",
 
+  // Core infrastructure
+  RUNTIME: "RUNTIME",
+  KERNEL: "KERNEL",
+  LIFECYCLE: "LIFECYCLE",
+
   // Configuration
   CONFIG: "CONFIG",
 
   // Validation
   VALIDATION: "VALIDATION",
+
+  // AI
+  AI: "AI",
+  AI_PROVIDER: "AI_PROVIDER",
 
   // Network
   NETWORK: "NETWORK",
@@ -13,8 +22,12 @@ export const ErrorCodes = {
   // Permissions
   PERMISSION: "PERMISSION",
 
-  // Memory
+  // Storage / Memory
+  STORAGE: "STORAGE",
   MEMORY: "MEMORY",
+
+  // Services
+  SERVICE: "SERVICE",
 
   // Voice
   VOICE: "VOICE",
@@ -32,5 +45,4 @@ export const ErrorCodes = {
   AUTOMATION: "AUTOMATION",
 } as const;
 
-export type ErrorCode =
-  (typeof ErrorCodes)[keyof typeof ErrorCodes];
+export type ErrorCode = (typeof ErrorCodes)[keyof typeof ErrorCodes];

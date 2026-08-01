@@ -1,7 +1,14 @@
 import { validateEnvironment } from "@/core/config";
+import {
+  ErrorCodes,
+  handleError,
+} from "@/core/errors";
 import { lifecycle } from "@/core/lifecycle";
 
-import type { RuntimeContract, RuntimeState } from "./types";
+import type {
+  RuntimeContract,
+  RuntimeState,
+} from "./types";
 
 export class Runtime implements RuntimeContract {
   private currentState: RuntimeState = "idle";
@@ -15,7 +22,10 @@ export class Runtime implements RuntimeContract {
   }
 
   async start(): Promise<void> {
-    if (this.currentState === "running" || this.currentState === "starting") {
+    if (
+      this.currentState === "running" ||
+      this.currentState === "starting"
+    ) {
       return;
     }
 
@@ -36,9 +46,14 @@ export class Runtime implements RuntimeContract {
     } catch (error) {
       this.currentState = "error";
 
-      console.error("❌ Failed to start Kei Runtime:", error);
+      const appError = handleError(error, {
+        code: ErrorCodes.RUNTIME,
+        context: {
+          operation: "start",
+        },
+      });
 
-      throw error;
+      throw appError;
     }
   }
 
@@ -64,9 +79,14 @@ export class Runtime implements RuntimeContract {
     } catch (error) {
       this.currentState = "error";
 
-      console.error("❌ Failed to stop Kei Runtime:", error);
+      const appError = handleError(error, {
+        code: ErrorCodes.RUNTIME,
+        context: {
+          operation: "stop",
+        },
+      });
 
-      throw error;
+      throw appError;
     }
   }
 
