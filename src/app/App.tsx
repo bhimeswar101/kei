@@ -4,20 +4,22 @@ import { runtime } from "@/core/runtime";
 
 function App() {
   useEffect(() => {
-    void runtime.start();
+    const start = async () => {
+      try {
+        await runtime.start();
+      } catch (error) {
+        console.error("❌ Failed to start Kei:", error);
+      }
+    };
+
+    void start();
 
     return () => {
       void runtime.stop();
     };
   }, []);
 
-  return (
-    <div className="flex h-screen items-center justify-center bg-black text-white">
-      <h1 className="text-5xl font-bold text-violet-400">
-        Kei
-      </h1>
-    </div>
-  );
+  return <main className="min-h-screen bg-black" />;
 }
 
 export default App;

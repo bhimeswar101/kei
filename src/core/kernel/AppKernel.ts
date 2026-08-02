@@ -11,6 +11,9 @@ import { eventBus } from "@/core/events";
 import { permissionManager } from "@/core/permissions";
 import { serviceRegistry } from "@/core/services";
 import { storage } from "@/core/storage";
+import {
+  registerBuiltinCapabilities,
+} from "@/core/capabilities";
 
 export class AppKernel implements AppKernelContract {
   private state: KernelState = "idle";
@@ -38,6 +41,11 @@ export class AppKernel implements AppKernelContract {
       console.info("✓ Storage Ready");
       console.info("✓ Permission Manager Ready");
       console.info("✓ Service Registry Ready");
+      registerBuiltinCapabilities();
+
+console.log(
+  "✓ Built-in Capabilities Registered",
+);
 
       // AI provider
       const geminiProvider = new GeminiProvider();

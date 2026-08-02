@@ -1,4 +1,7 @@
 import type { ContextSnapshot } from "@/core/context";
+import type {
+  CapabilityResolution,
+} from "@/core/capabilities";
 
 export type IntelligenceInputType =
   | "text"
@@ -91,4 +94,6 @@ export interface IntelligenceResult {
   readonly decision: IntelligenceDecision;
 
   readonly understanding: IntelligenceUnderstanding;
+
+  readonly capability?: CapabilityResolution;
 }

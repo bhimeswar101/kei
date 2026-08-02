@@ -9,8 +9,8 @@ import {
   modelEntityExtractor,
 } from "./ModelEntityExtractor";
 import {
-  modelIntentRecognizer,
-} from "./ModelIntentRecognizer";
+  ruleIntentRecognizer,
+} from "./RuleIntentRecognizer";
 import {
   requestNormalizer,
 } from "./RequestNormalizer";
@@ -55,10 +55,10 @@ export class KeiRequestUnderstandingEngine
       entities,
       references,
     ] = await Promise.all([
-      modelIntentRecognizer.recognize(
-        context,
-        normalizedText,
-      ),
+      ruleIntentRecognizer.recognize(
+  context,
+  normalizedText,
+),
 
       modelEntityExtractor.extract(
         context,

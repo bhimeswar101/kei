@@ -8,3 +8,4 @@ export * from "./ReferenceResolver";
 export * from "./RequestNormalizer";
 export * from "./RequestUnderstandingEngine";
 export * from "./types";
+export * from "./RuleIntentRecognizer";
