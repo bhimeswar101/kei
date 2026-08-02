@@ -1,9 +1,24 @@
 import type { ContextSnapshot } from "@/core/context";
-export type IntelligenceInputType = "text" | "audio" | "vision" | "system";
 
-export type IntelligenceIntent = "conversation" | "question" | "action" | "automation" | "unknown";
+export type IntelligenceInputType =
+  | "text"
+  | "audio"
+  | "vision"
+  | "system";
 
-export type IntelligenceStatus = "idle" | "processing" | "waiting-for-tool" | "completed" | "error";
+export type IntelligenceIntent =
+  | "conversation"
+  | "question"
+  | "action"
+  | "automation"
+  | "unknown";
+
+export type IntelligenceStatus =
+  | "idle"
+  | "processing"
+  | "waiting-for-tool"
+  | "completed"
+  | "error";
 
 export interface IntelligenceInput {
   readonly id: string;
@@ -22,15 +37,35 @@ export interface IntelligenceContext {
 
   readonly context: ContextSnapshot;
 
-  readonly metadata?: Readonly<Record<string, unknown>>;
+  readonly metadata?: Readonly<
+    Record<string, unknown>
+  >;
 }
 
+export type IntelligenceDecisionType =
+  | "respond"
+  | "execute"
+  | "clarify"
+  | "reject"
+  | "defer"
+  | "unknown";
+
 export interface IntelligenceDecision {
+  readonly type: IntelligenceDecisionType;
+
   readonly intent: IntelligenceIntent;
 
   readonly requiresAction: boolean;
 
-  readonly confidence?: number;
+  readonly requiresPlanning: boolean;
+
+  readonly requiresCapability: boolean;
+
+  readonly requiresClarification: boolean;
+
+  readonly confidence: number;
+
+  readonly reason?: string;
 }
 
 export interface IntelligenceUnderstanding {
