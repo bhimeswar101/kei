@@ -63,13 +63,27 @@ export class KeiPlanningEngine extends BasePlanningEngine {
     };
   }
 
-  private createArguments(input: PlanningInput): Readonly<Record<string, unknown>> {
-    return {
-      goal: input.goal,
+  private createArguments(
+  input: PlanningInput,
+): Readonly<Record<string, unknown>> {
+  const applicationEntity =
+    input.entities.find(
+      (entity) =>
+        entity.type === "application",
+    );
 
-      entities: input.entities,
+  if (applicationEntity) {
+    return {
+      target: applicationEntity.value,
     };
   }
+
+  return {
+    goal: input.goal,
+
+    entities: input.entities,
+  };
+}
 
   private createPlanId(requestId: string): string {
     return `${requestId}:plan`;

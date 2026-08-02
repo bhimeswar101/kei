@@ -16,6 +16,10 @@ import {
 } from "@/core/understanding";
 
 import { BaseIntelligenceEngine } from "./IntelligenceEngine";
+import {
+  executionEngine,
+  executionInputBuilder,
+} from "@/core/execution";
 
 import type {
   IntelligenceContext,
@@ -158,6 +162,36 @@ export class KeiIntelligenceEngine
               ),
             )
           : undefined;
+          const resultBeforeExecution:
+  IntelligenceResult = {
+  requestId: context.requestId,
+
+  text: "",
+
+  decision,
+
+  understanding:
+    intelligenceUnderstanding,
+
+  capability,
+
+  planning,
+};
+
+// 4.7 — Execute eligible plan
+const executionEligibility =
+  executionInputBuilder.canExecute(
+    resultBeforeExecution,
+  );
+
+const execution =
+  executionEligibility.allowed
+    ? await executionEngine.execute(
+        executionInputBuilder.build(
+          resultBeforeExecution,
+        ),
+      )
+    : undefined;
 
       const provider =
         aiProviderManager.getActive();
@@ -168,19 +202,21 @@ export class KeiIntelligenceEngine
       });
 
       const result: IntelligenceResult = {
-        requestId: context.requestId,
+  requestId: context.requestId,
 
-        text: response.text,
+  text: response.text,
 
-        decision,
+  decision,
 
-        understanding:
-          intelligenceUnderstanding,
+  understanding:
+    intelligenceUnderstanding,
 
-        capability,
+  capability,
 
-        planning,
-      };
+  planning,
+
+  execution,
+};
 
       this.status = "completed";
 

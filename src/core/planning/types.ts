@@ -5,6 +5,9 @@ import type {
 import type {
   IntelligenceContext,
 } from "@/core/intelligence";
+import type {
+  RequestEntity,
+} from "@/core/understanding";
 
 export type PlanId = string;
 
@@ -69,7 +72,8 @@ export interface PlanningInput {
   readonly capability:
     CapabilityDefinition;
 
-  readonly entities: readonly unknown[];
+  readonly entities:
+  readonly RequestEntity[];
 
   readonly metadata?: Readonly<
     Record<string, unknown>

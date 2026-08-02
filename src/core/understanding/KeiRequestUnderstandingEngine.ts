@@ -9,6 +9,9 @@ import {
   modelEntityExtractor,
 } from "./ModelEntityExtractor";
 import {
+  ruleEntityExtractor,
+} from "./RuleEntityExtractor";
+import {
   ruleIntentRecognizer,
 } from "./RuleIntentRecognizer";
 import {
@@ -52,15 +55,15 @@ export class KeiRequestUnderstandingEngine
 
     const [
       recognition,
-      entities,
+      ruleEntities,
       references,
     ] = await Promise.all([
       ruleIntentRecognizer.recognize(
-  context,
-  normalizedText,
-),
+        context,
+        normalizedText,
+      ),
 
-      modelEntityExtractor.extract(
+      ruleEntityExtractor.extract(
         context,
         normalizedText,
       ),
@@ -70,6 +73,21 @@ export class KeiRequestUnderstandingEngine
         normalizedText,
       ),
     ]);
+
+    /*
+     * Prefer deterministic entity extraction
+     * for requests understood by our rules.
+     *
+     * Fall back to the model extractor when
+     * no rule-based entities were discovered.
+     */
+    const entities =
+      ruleEntities.length > 0
+        ? ruleEntities
+        : await modelEntityExtractor.extract(
+            context,
+            normalizedText,
+          );
 
     const hasUnresolvedReferences =
       references.some(

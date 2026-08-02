@@ -1,21 +1,38 @@
 // src/core/kernel/AppKernel.ts
 
-import type { AppKernelContract, KernelState } from "./types";
-
 import { aiProviderManager, GeminiProvider } from "@/core/ai";
 import {
   backgroundServiceManager,
-} from "@/core/background";import { brain } from "@/core/brain";
-import { ErrorCodes, handleError } from "@/core/errors";
-import { eventBus } from "@/core/events";
-import { permissionManager } from "@/core/permissions";
-import { serviceRegistry } from "@/core/services";
-import { storage } from "@/core/storage";
+} from "@/core/background";
+import { brain } from "@/core/brain";
 import {
   registerBuiltinCapabilities,
 } from "@/core/capabilities";
+import {
+  applicationOpenHandler,
+  capabilityHandlerRegistry,
+} from "@/core/execution";
+import {
+  ErrorCodes,
+  handleError,
+} from "@/core/errors";
+import { eventBus } from "@/core/events";
+import {
+  permissionManager,
+} from "@/core/permissions";
+import {
+  serviceRegistry,
+} from "@/core/services";
+import { storage } from "@/core/storage";
 
-export class AppKernel implements AppKernelContract {
+import type {
+  AppKernelContract,
+  KernelState,
+} from "./types";
+
+export class AppKernel
+  implements AppKernelContract
+{
   private state: KernelState = "idle";
 
   async start(): Promise<void> {
@@ -29,7 +46,9 @@ export class AppKernel implements AppKernelContract {
     this.state = "starting";
 
     try {
-      console.info("🚀 Starting Kei Kernel...");
+      console.info(
+        "🚀 Starting Kei Kernel...",
+      );
 
       // Core infrastructure
       void eventBus;
@@ -39,46 +58,80 @@ export class AppKernel implements AppKernelContract {
 
       console.info("✓ Event Bus Ready");
       console.info("✓ Storage Ready");
-      console.info("✓ Permission Manager Ready");
-      console.info("✓ Service Registry Ready");
+      console.info(
+        "✓ Permission Manager Ready",
+      );
+      console.info(
+        "✓ Service Registry Ready",
+      );
+
+      // Capability awareness
       registerBuiltinCapabilities();
 
-console.log(
-  "✓ Built-in Capabilities Registered",
-);
+      console.info(
+        "✓ Built-in Capabilities Registered",
+      );
+
+      // Execution handlers
+      if (
+        !capabilityHandlerRegistry.has(
+          applicationOpenHandler.capabilityId,
+        )
+      ) {
+        capabilityHandlerRegistry.register(
+          applicationOpenHandler,
+        );
+      }
+
+      console.info(
+        "✓ Execution Handlers Registered",
+      );
 
       // AI provider
-      const geminiProvider = new GeminiProvider();
+      const geminiProvider =
+        new GeminiProvider();
 
-      aiProviderManager.register(geminiProvider);
-      aiProviderManager.setActive(geminiProvider.id);
+      aiProviderManager.register(
+        geminiProvider,
+      );
 
-      console.info("✓ Gemini Provider Registered");
+      aiProviderManager.setActive(
+        geminiProvider.id,
+      );
+
+      console.info(
+        "✓ Gemini Provider Registered",
+      );
 
       // Intelligence layer
-      // Intelligence layer
-await brain.initialize();
+      await brain.initialize();
 
-console.info("✓ Brain Ready");
+      console.info("✓ Brain Ready");
 
-// Background services
+      // Background services
+      await backgroundServiceManager.startAll();
 
+      console.info(
+        "✓ Background Services Ready",
+      );
 
-await backgroundServiceManager.startAll();
-
-console.info("✓ Background Services Ready");
       this.state = "running";
 
-      console.info("✅ Kei Kernel Running");
+      console.info(
+        "✅ Kei Kernel Running",
+      );
     } catch (error) {
       this.state = "idle";
 
-      const appError = handleError(error, {
-        code: ErrorCodes.KERNEL,
-        context: {
-          operation: "start",
+      const appError = handleError(
+        error,
+        {
+          code: ErrorCodes.KERNEL,
+          context: {
+            operation: "start",
+          },
         },
-      });
+      );
 
       throw appError;
     }
@@ -92,13 +145,17 @@ console.info("✓ Background Services Ready");
     this.state = "stopping";
 
     try {
-      console.info("🛑 Stopping Kei Kernel...");
+      console.info(
+        "🛑 Stopping Kei Kernel...",
+      );
 
-      // Stop background work before shutting down
-      // the intelligence layer.
+      // Stop background work before
+      // shutting down the intelligence layer.
       await backgroundServiceManager.stopAll();
 
-      console.info("✓ Background Services Stopped");
+      console.info(
+        "✓ Background Services Stopped",
+      );
 
       await brain.shutdown();
 
@@ -106,16 +163,21 @@ console.info("✓ Background Services Ready");
 
       this.state = "stopped";
 
-      console.info("✓ Kei Kernel Stopped");
+      console.info(
+        "✓ Kei Kernel Stopped",
+      );
     } catch (error) {
       this.state = "running";
 
-      const appError = handleError(error, {
-        code: ErrorCodes.KERNEL,
-        context: {
-          operation: "stop",
+      const appError = handleError(
+        error,
+        {
+          code: ErrorCodes.KERNEL,
+          context: {
+            operation: "stop",
+          },
         },
-      });
+      );
 
       throw appError;
     }
@@ -135,4 +197,5 @@ console.info("✓ Background Services Ready");
   }
 }
 
-export const appKernel = new AppKernel();
+export const appKernel =
+  new AppKernel();
