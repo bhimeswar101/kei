@@ -1,37 +1,24 @@
 import { aiProviderManager } from "@/core/ai";
-import {
-  intelligenceEngine,
-} from "@/core/intelligence";
+import { contextEngine } from "@/core/context";
+import { intelligenceEngine } from "@/core/intelligence";
 
-import type {
-  IntelligenceContext,
-  IntelligenceInput,
-} from "@/core/intelligence";
+import type { IntelligenceContext, IntelligenceInput } from "@/core/intelligence";
 
-import type {
-  BrainRequest,
-  BrainResponse,
-} from "./types";
+import type { BrainRequest, BrainResponse } from "./types";
 
 export class Brain {
   async initialize(): Promise<void> {
-    const provider =
-      aiProviderManager.getActive();
+    const provider = aiProviderManager.getActive();
 
     await provider.initialize();
   }
 
-  async ask(
-    request: BrainRequest,
-  ): Promise<BrainResponse> {
-    const requestId =
-      request.id ?? crypto.randomUUID();
+  async ask(request: BrainRequest): Promise<BrainResponse> {
+    const requestId = request.id ?? crypto.randomUUID();
 
     const input: IntelligenceInput = {
       id: requestId,
-      type:
-        request.type ??
-        this.resolveInputType(request),
+      type: request.type ?? this.resolveInputType(request),
       text: request.text,
       audio: request.audio,
       timestamp: new Date(),
@@ -40,6 +27,7 @@ export class Brain {
     const context: IntelligenceContext = {
       requestId,
       input,
+      context: contextEngine.createSnapshot(requestId),
       metadata: request.metadata,
     };
 
@@ -47,17 +35,13 @@ export class Brain {
   }
 
   async shutdown(): Promise<void> {
-    const provider =
-      aiProviderManager.getActive();
+    const provider = aiProviderManager.getActive();
 
     await provider.dispose();
   }
 
-  private async processRequest(
-    context: IntelligenceContext,
-  ): Promise<BrainResponse> {
-    const result =
-      await intelligenceEngine.process(context);
+  private async processRequest(context: IntelligenceContext): Promise<BrainResponse> {
+    const result = await intelligenceEngine.process(context);
 
     return {
       requestId: result.requestId,
@@ -65,9 +49,7 @@ export class Brain {
     };
   }
 
-  private resolveInputType(
-    request: BrainRequest,
-  ): "text" | "audio" {
+  private resolveInputType(request: BrainRequest): "text" | "audio" {
     if (request.audio) {
       return "audio";
     }
