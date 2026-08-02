@@ -8,7 +8,10 @@ function App() {
       try {
         await runtime.start();
       } catch (error) {
-        console.error("❌ Failed to start Kei:", error);
+        console.error(
+          "❌ Failed to start Kei:",
+          error,
+        );
       }
     };
 
@@ -19,7 +22,9 @@ function App() {
     };
   }, []);
 
-  return <main className="min-h-screen bg-black" />;
+  return (
+    <main className="min-h-screen bg-black" />
+  );
 }
 
 export default App;

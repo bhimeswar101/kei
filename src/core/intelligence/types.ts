@@ -1,27 +1,12 @@
 import type { ContextSnapshot } from "@/core/context";
-import type {
-  CapabilityResolution,
-} from "@/core/capabilities";
+import type { CapabilityResolution } from "@/core/capabilities";
+import type { PlanningResult } from "@/core/planning";
 
-export type IntelligenceInputType =
-  | "text"
-  | "audio"
-  | "vision"
-  | "system";
+export type IntelligenceInputType = "text" | "audio" | "vision" | "system";
 
-export type IntelligenceIntent =
-  | "conversation"
-  | "question"
-  | "action"
-  | "automation"
-  | "unknown";
+export type IntelligenceIntent = "conversation" | "question" | "action" | "automation" | "unknown";
 
-export type IntelligenceStatus =
-  | "idle"
-  | "processing"
-  | "waiting-for-tool"
-  | "completed"
-  | "error";
+export type IntelligenceStatus = "idle" | "processing" | "waiting-for-tool" | "completed" | "error";
 
 export interface IntelligenceInput {
   readonly id: string;
@@ -40,18 +25,11 @@ export interface IntelligenceContext {
 
   readonly context: ContextSnapshot;
 
-  readonly metadata?: Readonly<
-    Record<string, unknown>
-  >;
+  readonly metadata?: Readonly<Record<string, unknown>>;
 }
 
 export type IntelligenceDecisionType =
-  | "respond"
-  | "execute"
-  | "clarify"
-  | "reject"
-  | "defer"
-  | "unknown";
+  "respond" | "execute" | "clarify" | "reject" | "defer" | "unknown";
 
 export interface IntelligenceDecision {
   readonly type: IntelligenceDecisionType;
@@ -75,10 +53,7 @@ export interface IntelligenceUnderstanding {
   readonly originalText: string;
   readonly normalizedText: string;
 
-  readonly status:
-    | "understood"
-    | "ambiguous"
-    | "unsupported";
+  readonly status: "understood" | "ambiguous" | "unsupported";
 
   readonly requiresContext: boolean;
 
@@ -96,4 +71,6 @@ export interface IntelligenceResult {
   readonly understanding: IntelligenceUnderstanding;
 
   readonly capability?: CapabilityResolution;
+
+  readonly planning?: PlanningResult;
 }

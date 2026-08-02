@@ -4,6 +4,10 @@ import {
   capabilityResolver,
 } from "@/core/capabilities";
 import {
+  planningEngine,
+  planningInputBuilder,
+} from "@/core/planning";
+import {
   reasoningEngine,
   reasoningInputBuilder,
 } from "@/core/reasoning";
@@ -119,6 +123,42 @@ export class KeiIntelligenceEngine
             )
           : undefined;
 
+      /*
+       * Build the partial intelligence result needed
+       * by the planning input builder.
+       *
+       * Planning runs only when reasoning requires it
+       * and capability resolution found a selected
+       * capability.
+       */
+      const resultBeforePlanning:
+        IntelligenceResult = {
+        requestId: context.requestId,
+
+        text: "",
+
+        decision,
+
+        understanding:
+          intelligenceUnderstanding,
+
+        capability,
+      };
+
+      // 4.6 — Create execution plan
+      const planning =
+        decision.requiresPlanning &&
+        capability?.available === true &&
+        capability.selected
+          ? await planningEngine.createPlan(
+              planningInputBuilder.build(
+                context,
+                resultBeforePlanning,
+                capability.selected.capability,
+              ),
+            )
+          : undefined;
+
       const provider =
         aiProviderManager.getActive();
 
@@ -138,6 +178,8 @@ export class KeiIntelligenceEngine
           intelligenceUnderstanding,
 
         capability,
+
+        planning,
       };
 
       this.status = "completed";
