@@ -33,10 +33,27 @@ export interface IntelligenceDecision {
   readonly confidence?: number;
 }
 
+export interface IntelligenceUnderstanding {
+  readonly originalText: string;
+  readonly normalizedText: string;
+
+  readonly status:
+    | "understood"
+    | "ambiguous"
+    | "unsupported";
+
+  readonly requiresContext: boolean;
+
+  readonly entities: readonly unknown[];
+  readonly references: readonly unknown[];
+}
+
 export interface IntelligenceResult {
   readonly requestId: string;
 
   readonly text: string;
 
   readonly decision: IntelligenceDecision;
+
+  readonly understanding: IntelligenceUnderstanding;
 }

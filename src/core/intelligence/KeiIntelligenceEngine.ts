@@ -1,4 +1,7 @@
 import { aiProviderManager } from "@/core/ai";
+import {
+  requestUnderstandingEngine,
+} from "@/core/understanding";
 
 import { BaseIntelligenceEngine } from "./IntelligenceEngine";
 
@@ -23,6 +26,11 @@ export class KeiIntelligenceEngine
     this.status = "processing";
 
     try {
+      const understanding =
+        await requestUnderstandingEngine.understand(
+          context,
+        );
+
       const provider =
         aiProviderManager.getActive();
 
@@ -32,15 +40,42 @@ export class KeiIntelligenceEngine
       });
 
       const decision: IntelligenceDecision = {
-        intent: "unknown",
-        requiresAction: false,
+        intent: understanding.intent,
+        requiresAction:
+          understanding.intent === "action" ||
+          understanding.intent ===
+            "automation",
+        confidence:
+          understanding.confidence,
       };
 
       const result: IntelligenceResult = {
-        requestId: context.requestId,
-        text: response.text,
-        decision,
-      };
+  requestId: context.requestId,
+
+  text: response.text,
+
+  decision,
+
+  understanding: {
+    originalText:
+      understanding.originalText,
+
+    normalizedText:
+      understanding.normalizedText,
+
+    status:
+      understanding.status,
+
+    requiresContext:
+      understanding.requiresContext,
+
+    entities:
+      understanding.entities,
+
+    references:
+      understanding.references,
+  },
+};
 
       this.status = "completed";
 
