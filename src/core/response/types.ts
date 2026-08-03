@@ -100,6 +100,30 @@ export interface ConversationalResponseSynthesizerContract {
     input: ResponseSynthesisInput,
   ): ConversationalResponse;
 }
+export interface ClarificationResponse {
+  readonly strategy: "clarification";
+
+  readonly success: true;
+
+  readonly grounded: false;
+
+  readonly originalText: string;
+
+  readonly reason?: string;
+
+  readonly unresolvedReferences:
+    readonly string[];
+
+  readonly requiresContext: boolean;
+
+  readonly context: string;
+}
+
+export interface ClarificationResponseSynthesizerContract {
+  synthesize(
+    input: ResponseSynthesisInput,
+  ): ClarificationResponse;
+}
 export interface ResponseSynthesisEngineContract {
   synthesize(
     input: ResponseSynthesisInput,
