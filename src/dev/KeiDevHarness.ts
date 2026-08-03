@@ -1,3 +1,5 @@
+import { invoke } from "@tauri-apps/api/core";
+
 import {
   keiRequestGateway,
 } from "@/core/runtime";
@@ -33,6 +35,38 @@ export class KeiDevHarness {
     );
 
     return result;
+  }
+
+  async testGemini(
+    prompt: string,
+  ): Promise<string> {
+    const normalizedPrompt =
+      prompt.trim();
+
+    if (!normalizedPrompt) {
+      throw new Error(
+        "Gemini test prompt cannot be empty.",
+      );
+    }
+
+    console.info(
+      "[KEI DEV] Testing native Gemini connection...",
+    );
+
+    const response =
+      await invoke<string>(
+        "gemini_generate",
+        {
+          prompt: normalizedPrompt,
+        },
+      );
+
+    console.info(
+      "[KEI DEV] Gemini response:",
+      response,
+    );
+
+    return response;
   }
 }
 
