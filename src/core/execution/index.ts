@@ -6,3 +6,4 @@ export * from "./KeiExecutionEngine";
 export * from "./types";
 export * from "./ApplicationOpenHandler";
 export * from "./ExecutionResultInterpreter";
+export * from "./StepExecutionResultValidator";
