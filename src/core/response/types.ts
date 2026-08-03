@@ -83,6 +83,31 @@ export interface ExecutionAwareResponseSynthesizerContract {
     input: ResponseSynthesisInput,
   ): ExecutionAwareResponse;
 }
+export interface FailureCancellationResponse {
+  readonly strategy:
+    | "execution-failure"
+    | "cancelled";
+
+  readonly success: false;
+
+  readonly grounded: true;
+
+  readonly summary: string;
+
+  readonly error?: string;
+
+  readonly failedStepId?: string;
+
+  readonly failedCapabilityId?: string;
+
+  readonly context: string;
+}
+
+export interface FailureCancellationResponseSynthesizerContract {
+  synthesize(
+    input: ResponseSynthesisInput,
+  ): FailureCancellationResponse;
+}
 export interface ConversationalResponse {
   readonly strategy: "conversation";
 
