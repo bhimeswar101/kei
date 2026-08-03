@@ -1,7 +1,9 @@
 import {
   executionResultInterpreter,
 } from "@/core/execution";
-
+import {
+  responseGroundingGuard,
+} from "./ResponseGroundingGuard";
 import {
   responseStrategyResolver,
 } from "./ResponseStrategyResolver";
@@ -44,6 +46,10 @@ export class ExecutionAwareResponseSynthesizer
         `Response strategy "${strategy}" is not execution-aware.`,
       );
     }
+    responseGroundingGuard.assertStrategyGrounding(
+  input,
+  strategy,
+);
 
     const interpretation =
       executionResultInterpreter.interpret(

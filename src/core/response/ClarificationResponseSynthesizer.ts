@@ -1,4 +1,8 @@
 import {
+  responseGroundingGuard,
+} from "./ResponseGroundingGuard";
+
+import {
   responseStrategyResolver,
 } from "./ResponseStrategyResolver";
 
@@ -24,6 +28,11 @@ export class ClarificationResponseSynthesizer
         `Response strategy "${strategy}" is not clarification.`,
       );
     }
+
+    responseGroundingGuard.assertStrategyGrounding(
+      input,
+      strategy,
+    );
 
     const originalText =
       input.originalText?.trim();

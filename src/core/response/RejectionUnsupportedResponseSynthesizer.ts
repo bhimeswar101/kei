@@ -1,4 +1,8 @@
 import {
+  responseGroundingGuard,
+} from "./ResponseGroundingGuard";
+
+import {
   responseStrategyResolver,
 } from "./ResponseStrategyResolver";
 
@@ -27,6 +31,11 @@ export class RejectionUnsupportedResponseSynthesizer
         `Response strategy "${strategy}" is not rejection or unsupported.`,
       );
     }
+
+    responseGroundingGuard.assertStrategyGrounding(
+      input,
+      strategy,
+    );
 
     const originalText =
       input.originalText?.trim();

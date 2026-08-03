@@ -1,7 +1,9 @@
 import {
   responseStrategyResolver,
 } from "./ResponseStrategyResolver";
-
+import {
+  responseGroundingGuard,
+} from "./ResponseGroundingGuard";
 import type {
   ConversationalResponse,
   ConversationalResponseSynthesizerContract,
@@ -24,6 +26,10 @@ export class ConversationalResponseSynthesizer
         `Response strategy "${strategy}" is not conversational.`,
       );
     }
+    responseGroundingGuard.assertStrategyGrounding(
+  input,
+  strategy,
+);
 
     const originalText =
       input.originalText?.trim();

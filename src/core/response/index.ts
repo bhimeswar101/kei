@@ -3,6 +3,7 @@ export * from "./ConversationalResponseSynthesizer";
 export * from "./ExecutionAwareResponseSynthesizer";
 export * from "./FailureCancellationResponseSynthesizer";
 export * from "./RejectionUnsupportedResponseSynthesizer";
+export * from "./ResponseGroundingGuard";
 export * from "./ResponseSynthesisEngine";
 export * from "./ResponseSynthesisInputBuilder";
 export * from "./ResponseStrategyResolver";
