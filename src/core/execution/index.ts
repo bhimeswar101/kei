@@ -5,3 +5,4 @@ export * from "./ExecutionInputBuilder";
 export * from "./KeiExecutionEngine";
 export * from "./types";
 export * from "./ApplicationOpenHandler";
+export * from "./ExecutionResultInterpreter";
