@@ -1,7 +1,9 @@
 import type {
   IntelligenceResult,
 } from "@/core/intelligence";
-
+import type {
+  ExecutionInterpretation,
+} from "@/core/execution";
 export type ResponseSynthesisStatus =
   | "idle"
   | "synthesizing"
@@ -56,6 +58,30 @@ export interface SynthesizedResponse {
   readonly metadata?: Readonly<
     Record<string, unknown>
   >;
+}
+export interface ExecutionAwareResponse {
+  readonly strategy:
+    | "execution-success"
+    | "execution-failure"
+    | "cancelled"
+    | "deferred";
+
+  readonly success: boolean;
+
+  readonly grounded: true;
+
+  readonly interpretation:
+    ExecutionInterpretation;
+
+  readonly summary: string;
+
+  readonly error?: string;
+}
+
+export interface ExecutionAwareResponseSynthesizerContract {
+  synthesize(
+    input: ResponseSynthesisInput,
+  ): ExecutionAwareResponse;
 }
 
 export interface ResponseSynthesisEngineContract {
