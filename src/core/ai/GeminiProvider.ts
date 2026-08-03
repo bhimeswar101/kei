@@ -1,4 +1,9 @@
+import {
+  desktopNativeHostTransport,
+} from "@/integrations/native";
+
 import { BaseAIProvider } from "./AIProvider";
+
 import type {
   AIRequest,
   AIResponse,
@@ -11,21 +16,56 @@ export class GeminiProvider
 
   readonly name = "Google Gemini";
 
+  private initialized = false;
+
   async initialize(): Promise<void> {
-    console.log("[Gemini] Initialized");
+    if (
+      !desktopNativeHostTransport.isAvailable()
+    ) {
+      throw new Error(
+        "Gemini native transport is unavailable.",
+      );
+    }
+
+    this.initialized = true;
+
+    console.info(
+      "[Gemini] Provider initialized.",
+    );
   }
 
   async send(
     request: AIRequest,
   ): Promise<AIResponse> {
-    console.log(request);
+    if (!this.initialized) {
+      throw new Error(
+        "Gemini provider is not initialized.",
+      );
+    }
+
+    const text =
+      request.text?.trim();
+
+    if (!text) {
+      throw new Error(
+        "Gemini requires a non-empty text request.",
+      );
+    }
+
+    const response =
+      await desktopNativeHostTransport
+        .generateAIResponse(text);
 
     return {
-      text: "Gemini provider placeholder.",
+      text: response,
     };
   }
 
   async dispose(): Promise<void> {
-    console.log("[Gemini] Disposed");
+    this.initialized = false;
+
+    console.info(
+      "[Gemini] Provider disposed.",
+    );
   }
 }

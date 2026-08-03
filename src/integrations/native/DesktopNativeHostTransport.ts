@@ -57,6 +57,42 @@ export class DesktopNativeHostTransport
       };
     }
   }
+
+  async generateAIResponse(
+    prompt: string,
+  ): Promise<string> {
+    if (!this.isAvailable()) {
+      throw new Error(
+        "Tauri desktop native host is unavailable.",
+      );
+    }
+
+    const normalizedPrompt =
+      prompt.trim();
+
+    if (!normalizedPrompt) {
+      throw new Error(
+        "AI prompt cannot be empty.",
+      );
+    }
+
+    try {
+      return await invoke<string>(
+        "gemini_generate",
+        {
+          prompt: normalizedPrompt,
+        },
+      );
+    } catch (error) {
+      throw new Error(
+        error instanceof Error
+          ? error.message
+          : typeof error === "string"
+            ? error
+            : "Native Gemini request failed.",
+      );
+    }
+  }
 }
 
 export const desktopNativeHostTransport =
