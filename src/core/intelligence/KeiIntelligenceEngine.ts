@@ -7,6 +7,10 @@ import {
   planningEngine,
   planningInputBuilder,
 } from "@/core/planning";
+import { BaseIntelligenceEngine } from "./IntelligenceEngine";
+import {
+  aiResponseContextBuilder,
+} from "./AIResponseContextBuilder";
 import {
   reasoningEngine,
   reasoningInputBuilder,
@@ -15,7 +19,7 @@ import {
   requestUnderstandingEngine,
 } from "@/core/understanding";
 
-import { BaseIntelligenceEngine } from "./IntelligenceEngine";
+
 import {
   executionEngine,
   executionInputBuilder,
@@ -194,12 +198,19 @@ const execution =
     : undefined;
 
       const provider =
-        aiProviderManager.getActive();
+  aiProviderManager.getActive();
 
-      const response = await provider.send({
-        text: context.input.text,
-        audio: context.input.audio,
-      });
+const responseContext =
+  aiResponseContextBuilder.build({
+    originalText: context.input.text,
+    execution,
+  });
+
+const response =
+  await provider.send({
+    text: responseContext,
+    audio: context.input.audio,
+  });
 
       const result: IntelligenceResult = {
   requestId: context.requestId,
