@@ -1,4 +1,3 @@
-export * from "./BrowserNativeHostBridge";
 export * from "./NativeHostBridge";
 export * from "./PlatformApplicationAdapter";
 export * from "./PlatformApplicationAdapterManager";

@@ -1,7 +1,5 @@
 import { useEffect } from "react";
 
-import { contextEngine } from "@/core/context";
-import { intelligenceEngine } from "@/core/intelligence";
 import { runtime } from "@/core/runtime";
 
 function App() {
@@ -10,42 +8,12 @@ function App() {
       try {
         await runtime.start();
 
-        const requestId =
-          "execution-test-native-host";
-
-        const testContext = {
-          requestId,
-
-          input: {
-            id: "execution-test-input",
-            type: "text" as const,
-            text: "Open Spotify",
-            timestamp: new Date(),
-          },
-
-          context:
-            contextEngine.createSnapshot(
-              requestId,
-            ),
-        };
-
-        const result =
-          await intelligenceEngine.process(
-            testContext,
-          );
-
-        console.log(
-          "🧠 4.7 Intelligence result:",
-          result,
-        );
-
-        console.log(
-          "⚙️ 4.7 Execution result:",
-          result.execution,
+        console.info(
+          "✅ Kei application runtime started.",
         );
       } catch (error) {
         console.error(
-          "❌ 4.7 Execution test failed:",
+          "❌ Failed to start Kei application runtime:",
           error,
         );
       }
