@@ -124,6 +124,27 @@ export interface ClarificationResponseSynthesizerContract {
     input: ResponseSynthesisInput,
   ): ClarificationResponse;
 }
+export interface RejectionUnsupportedResponse {
+  readonly strategy:
+    | "rejection"
+    | "unsupported";
+
+  readonly success: false;
+
+  readonly grounded: false;
+
+  readonly originalText?: string;
+
+  readonly reason?: string;
+
+  readonly context: string;
+}
+
+export interface RejectionUnsupportedResponseSynthesizerContract {
+  synthesize(
+    input: ResponseSynthesisInput,
+  ): RejectionUnsupportedResponse;
+}
 export interface ResponseSynthesisEngineContract {
   synthesize(
     input: ResponseSynthesisInput,
