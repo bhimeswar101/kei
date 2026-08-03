@@ -1,3 +1,4 @@
+export * from "./ConversationalResponseSynthesizer";
 export * from "./ExecutionAwareResponseSynthesizer";
 export * from "./ResponseSynthesisEngine";
 export * from "./ResponseSynthesisInputBuilder";

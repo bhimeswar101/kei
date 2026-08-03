@@ -83,7 +83,23 @@ export interface ExecutionAwareResponseSynthesizerContract {
     input: ResponseSynthesisInput,
   ): ExecutionAwareResponse;
 }
+export interface ConversationalResponse {
+  readonly strategy: "conversation";
 
+  readonly success: true;
+
+  readonly grounded: false;
+
+  readonly originalText: string;
+
+  readonly context: string;
+}
+
+export interface ConversationalResponseSynthesizerContract {
+  synthesize(
+    input: ResponseSynthesisInput,
+  ): ConversationalResponse;
+}
 export interface ResponseSynthesisEngineContract {
   synthesize(
     input: ResponseSynthesisInput,
