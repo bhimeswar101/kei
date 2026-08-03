@@ -1,6 +1,14 @@
 import { invoke } from "@tauri-apps/api/core";
 
 import {
+  executionEngine,
+} from "@/core/execution";
+
+import type {
+  ExecutionStatus,
+} from "@/core/execution";
+
+import {
   keiRequestGateway,
 } from "@/core/runtime";
 
@@ -35,6 +43,48 @@ export class KeiDevHarness {
     );
 
     return result;
+  }
+
+  getExecutionStatus(): ExecutionStatus {
+    const status =
+      executionEngine.getStatus();
+
+    console.info(
+      "[KEI DEV] Execution status:",
+      status,
+    );
+
+    return status;
+  }
+
+  resetExecution(): ExecutionStatus {
+    executionEngine.reset();
+
+    const status =
+      executionEngine.getStatus();
+
+    console.info(
+      "[KEI DEV] Execution engine reset:",
+      status,
+    );
+
+    return status;
+  }
+
+  async cancelExecution(): Promise<
+    ExecutionStatus
+  > {
+    await executionEngine.cancel();
+
+    const status =
+      executionEngine.getStatus();
+
+    console.info(
+      "[KEI DEV] Execution cancellation requested. Status:",
+      status,
+    );
+
+    return status;
   }
 
   async testGemini(

@@ -84,5 +84,9 @@ export interface ExecutionEngineContract {
 
   cancel(): Promise<void>;
 
+  reset(): void;
+
   getStatus(): ExecutionStatus;
+
+  isRunning(): boolean;
 }

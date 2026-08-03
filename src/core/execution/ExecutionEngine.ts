@@ -23,6 +23,15 @@ export abstract class BaseExecutionEngine implements ExecutionEngineContract {
   getStatus(): ExecutionStatus {
     return this.status;
   }
+  reset(): void {
+  if (this.isRunning()) {
+    throw new Error(
+      "Cannot reset the execution engine while it is running.",
+    );
+  }
+
+  this.resetExecution();
+}
 
   isRunning(): boolean {
     return this.status === "running";
