@@ -1,12 +1,24 @@
-import { contextEngine } from "@/core/context";
+import {
+  contextEngine,
+} from "@/core/context";
 
-import { intelligenceEngine } from "@/core/intelligence";
+import {
+  intelligenceEngine,
+} from "@/core/intelligence";
 
 import type {
   IntelligenceContext,
   IntelligenceInputType,
   IntelligenceResult,
 } from "@/core/intelligence";
+
+import {
+  requestOutcomeResolver,
+} from "./RequestOutcomeResolver";
+
+import type {
+  RequestOutcome,
+} from "./RequestOutcome";
 
 export interface KeiRequestInput {
   readonly text?: string;
@@ -15,20 +27,36 @@ export interface KeiRequestInput {
 
   readonly type?: IntelligenceInputType;
 
-  readonly metadata?: Readonly<Record<string, unknown>>;
+  readonly metadata?: Readonly<
+    Record<string, unknown>
+  >;
+}
+
+export interface KeiRequestResult {
+  readonly requestId: string;
+
+  readonly outcome: RequestOutcome;
+
+  readonly intelligence: IntelligenceResult;
 }
 
 export class KeiRequestGateway {
-  async process(input: KeiRequestInput): Promise<IntelligenceResult> {
-    const requestId = this.createRequestId();
+  async process(
+    input: KeiRequestInput,
+  ): Promise<KeiRequestResult> {
+    const requestId =
+      this.createRequestId();
 
-    const context: IntelligenceContext = {
+    const context:
+      IntelligenceContext = {
       requestId,
 
       input: {
         id: `${requestId}:input`,
 
-        type: input.type ?? this.resolveInputType(input),
+        type:
+          input.type ??
+          this.resolveInputType(input),
 
         text: input.text,
 
@@ -37,22 +65,44 @@ export class KeiRequestGateway {
         timestamp: new Date(),
       },
 
-      context: contextEngine.createSnapshot(requestId),
+      context:
+        contextEngine.createSnapshot(
+          requestId,
+        ),
 
       metadata: input.metadata,
     };
 
-    return intelligenceEngine.process(context);
+    const intelligence =
+      await intelligenceEngine.process(
+        context,
+      );
+
+    const outcome =
+      requestOutcomeResolver.resolve(
+        intelligence,
+      );
+
+    return {
+      requestId,
+      outcome,
+      intelligence,
+    };
   }
 
   async processText(
     text: string,
-    metadata?: Readonly<Record<string, unknown>>,
-  ): Promise<IntelligenceResult> {
-    const normalizedText = text.trim();
+    metadata?: Readonly<
+      Record<string, unknown>
+    >,
+  ): Promise<KeiRequestResult> {
+    const normalizedText =
+      text.trim();
 
     if (!normalizedText) {
-      throw new Error("A text request cannot be empty.");
+      throw new Error(
+        "A text request cannot be empty.",
+      );
     }
 
     return this.process({
@@ -62,7 +112,9 @@ export class KeiRequestGateway {
     });
   }
 
-  private resolveInputType(input: KeiRequestInput): IntelligenceInputType {
+  private resolveInputType(
+    input: KeiRequestInput,
+  ): IntelligenceInputType {
     if (input.audio) {
       return "audio";
     }
@@ -75,12 +127,23 @@ export class KeiRequestGateway {
   }
 
   private createRequestId(): string {
-    if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    if (
+      typeof crypto !== "undefined" &&
+      typeof crypto.randomUUID ===
+        "function"
+    ) {
       return crypto.randomUUID();
     }
 
-    return ["kei", Date.now(), Math.random().toString(36).slice(2)].join("-");
+    return [
+      "kei",
+      Date.now(),
+      Math.random()
+        .toString(36)
+        .slice(2),
+    ].join("-");
   }
 }
 
-export const keiRequestGateway = new KeiRequestGateway();
+export const keiRequestGateway =
+  new KeiRequestGateway();

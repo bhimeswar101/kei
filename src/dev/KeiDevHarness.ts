@@ -3,13 +3,13 @@ import {
 } from "@/core/runtime";
 
 import type {
-  IntelligenceResult,
-} from "@/core/intelligence";
+  KeiRequestResult,
+} from "@/core/runtime";
 
 export class KeiDevHarness {
   async send(
     text: string,
-  ): Promise<IntelligenceResult> {
+  ): Promise<KeiRequestResult> {
     console.info(
       `[KEI DEV] Request: ${text}`,
     );
@@ -23,8 +23,13 @@ export class KeiDevHarness {
       );
 
     console.info(
-      "[KEI DEV] Result:",
-      result,
+      "[KEI DEV] Outcome:",
+      result.outcome,
+    );
+
+    console.info(
+      "[KEI DEV] Intelligence:",
+      result.intelligence,
     );
 
     return result;
