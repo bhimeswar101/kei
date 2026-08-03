@@ -1,33 +1,95 @@
-import { CapabilityHandler } from "./CapabilityHandler";
+import {
+  platformApplicationAdapterManager,
+} from "@/core/platform";
 
-import type { StepExecutionContext, StepExecutionResult } from "./types";
+import {
+  CapabilityHandler,
+} from "./CapabilityHandler";
 
-export class ApplicationOpenHandler extends CapabilityHandler {
-  readonly capabilityId = "application.open";
+import type {
+  StepExecutionContext,
+  StepExecutionResult,
+} from "./types";
 
-  async execute(context: StepExecutionContext): Promise<StepExecutionResult> {
+export class ApplicationOpenHandler
+  extends CapabilityHandler
+{
+  readonly capabilityId =
+    "application.open";
+
+  async execute(
+    context: StepExecutionContext,
+  ): Promise<StepExecutionResult> {
     const startedAt = new Date();
 
-    return {
-      stepId: context.step.id,
+    const target =
+      context.step.arguments.target;
 
-      capability: context.step.capability,
+    if (
+      typeof target !== "string" ||
+      !target.trim()
+    ) {
+      return {
+        stepId: context.step.id,
+        capability:
+          context.step.capability,
+        status: "failed",
+        error:
+          "A valid application target is required.",
+        startedAt,
+        completedAt: new Date(),
+      };
+    }
 
-      status: "completed",
+    try {
+      const adapter =
+        platformApplicationAdapterManager
+          .getActive();
 
-      output: {
-        handled: true,
+      const result =
+        await adapter.openApplication({
+          target,
+        });
 
-        capabilityId: this.capabilityId,
+      if (!result.success) {
+        return {
+          stepId: context.step.id,
+          capability:
+            context.step.capability,
+          status: "failed",
+          output: result,
+          error:
+            result.error ??
+            "Application launch failed.",
+          startedAt,
+          completedAt: new Date(),
+        };
+      }
 
-        arguments: context.step.arguments,
-      },
-
-      startedAt,
-
-      completedAt: new Date(),
-    };
+      return {
+        stepId: context.step.id,
+        capability:
+          context.step.capability,
+        status: "completed",
+        output: result,
+        startedAt,
+        completedAt: new Date(),
+      };
+    } catch (error) {
+      return {
+        stepId: context.step.id,
+        capability:
+          context.step.capability,
+        status: "failed",
+        error:
+          error instanceof Error
+            ? error.message
+            : "Application execution failed.",
+        startedAt,
+        completedAt: new Date(),
+      };
+    }
   }
 }
-
-export const applicationOpenHandler = new ApplicationOpenHandler();
+export const applicationOpenHandler =
+  new ApplicationOpenHandler();

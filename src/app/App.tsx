@@ -11,7 +11,7 @@ function App() {
         await runtime.start();
 
         const requestId =
-          "execution-test-missing-handler";
+          "execution-test-native-host";
 
         const testContext = {
           requestId,

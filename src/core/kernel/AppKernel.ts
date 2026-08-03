@@ -1,29 +1,52 @@
 // src/core/kernel/AppKernel.ts
 
-import { aiProviderManager, GeminiProvider } from "@/core/ai";
+import {
+  aiProviderManager,
+  GeminiProvider,
+} from "@/core/ai";
+
 import {
   backgroundServiceManager,
 } from "@/core/background";
+
 import { brain } from "@/core/brain";
+
 import {
   registerBuiltinCapabilities,
 } from "@/core/capabilities";
+
 import {
   applicationOpenHandler,
   capabilityHandlerRegistry,
 } from "@/core/execution";
+
 import {
   ErrorCodes,
   handleError,
 } from "@/core/errors";
+
 import { eventBus } from "@/core/events";
+
 import {
   permissionManager,
 } from "@/core/permissions";
+
+import {
+  platformApplicationAdapterManager,
+  platformDetector,
+  TransportNativeHostBridge,
+  WindowsApplicationAdapter,
+} from "@/core/platform";
+
 import {
   serviceRegistry,
 } from "@/core/services";
+
 import { storage } from "@/core/storage";
+
+import {
+  desktopNativeHostTransport,
+} from "@/integrations/native";
 
 import type {
   AppKernelContract,
@@ -50,29 +73,99 @@ export class AppKernel
         "🚀 Starting Kei Kernel...",
       );
 
+      // --------------------------------------------------
       // Core infrastructure
+      // --------------------------------------------------
+
       void eventBus;
       void storage;
       void permissionManager;
       void serviceRegistry;
 
-      console.info("✓ Event Bus Ready");
-      console.info("✓ Storage Ready");
+      console.info(
+        "✓ Event Bus Ready",
+      );
+
+      console.info(
+        "✓ Storage Ready",
+      );
+
       console.info(
         "✓ Permission Manager Ready",
       );
+
       console.info(
         "✓ Service Registry Ready",
       );
 
+      // --------------------------------------------------
       // Capability awareness
+      // --------------------------------------------------
+
       registerBuiltinCapabilities();
 
       console.info(
         "✓ Built-in Capabilities Registered",
       );
 
+      // --------------------------------------------------
+      // Platform layer
+      // --------------------------------------------------
+
+      const detectedPlatform =
+        platformDetector.detect();
+
+      console.info(
+        "✓ Detected Platform:",
+        detectedPlatform,
+      );
+
+      if (detectedPlatform === "windows") {
+        const nativeHostBridge =
+          new TransportNativeHostBridge(
+            desktopNativeHostTransport,
+          );
+
+        const windowsApplicationAdapter =
+          new WindowsApplicationAdapter(
+            nativeHostBridge,
+          );
+
+        if (
+          !platformApplicationAdapterManager.has(
+            "windows",
+          )
+        ) {
+          platformApplicationAdapterManager.register(
+            windowsApplicationAdapter,
+          );
+        }
+
+        platformApplicationAdapterManager.setActive(
+          "windows",
+        );
+
+        console.info(
+          "✓ Windows Application Adapter Registered",
+        );
+
+        console.info(
+          "✓ Active Platform Application Adapter:",
+          platformApplicationAdapterManager
+            .getActive()
+            .platform,
+        );
+
+        console.info(
+          "✓ Desktop Native Host Available:",
+          nativeHostBridge.isAvailable(),
+        );
+      }
+
+      // --------------------------------------------------
       // Execution handlers
+      // --------------------------------------------------
+
       if (
         !capabilityHandlerRegistry.has(
           applicationOpenHandler.capabilityId,
@@ -87,7 +180,10 @@ export class AppKernel
         "✓ Execution Handlers Registered",
       );
 
+      // --------------------------------------------------
       // AI provider
+      // --------------------------------------------------
+
       const geminiProvider =
         new GeminiProvider();
 
@@ -103,17 +199,29 @@ export class AppKernel
         "✓ Gemini Provider Registered",
       );
 
+      // --------------------------------------------------
       // Intelligence layer
+      // --------------------------------------------------
+
       await brain.initialize();
 
-      console.info("✓ Brain Ready");
+      console.info(
+        "✓ Brain Ready",
+      );
 
+      // --------------------------------------------------
       // Background services
+      // --------------------------------------------------
+
       await backgroundServiceManager.startAll();
 
       console.info(
         "✓ Background Services Ready",
       );
+
+      // --------------------------------------------------
+      // Kernel ready
+      // --------------------------------------------------
 
       this.state = "running";
 
@@ -123,15 +231,17 @@ export class AppKernel
     } catch (error) {
       this.state = "idle";
 
-      const appError = handleError(
-        error,
-        {
-          code: ErrorCodes.KERNEL,
-          context: {
-            operation: "start",
+      const appError =
+        handleError(
+          error,
+          {
+            code: ErrorCodes.KERNEL,
+
+            context: {
+              operation: "start",
+            },
           },
-        },
-      );
+        );
 
       throw appError;
     }
@@ -149,17 +259,39 @@ export class AppKernel
         "🛑 Stopping Kei Kernel...",
       );
 
-      // Stop background work before
-      // shutting down the intelligence layer.
+      // --------------------------------------------------
+      // Background services
+      // --------------------------------------------------
+
       await backgroundServiceManager.stopAll();
 
       console.info(
         "✓ Background Services Stopped",
       );
 
+      // --------------------------------------------------
+      // Intelligence layer
+      // --------------------------------------------------
+
       await brain.shutdown();
 
-      console.info("✓ Brain Stopped");
+      console.info(
+        "✓ Brain Stopped",
+      );
+
+      // --------------------------------------------------
+      // Platform layer cleanup
+      // --------------------------------------------------
+
+      platformApplicationAdapterManager.clear();
+
+      console.info(
+        "✓ Platform Application Adapters Cleared",
+      );
+
+      // --------------------------------------------------
+      // Kernel stopped
+      // --------------------------------------------------
 
       this.state = "stopped";
 
@@ -169,15 +301,17 @@ export class AppKernel
     } catch (error) {
       this.state = "running";
 
-      const appError = handleError(
-        error,
-        {
-          code: ErrorCodes.KERNEL,
-          context: {
-            operation: "stop",
+      const appError =
+        handleError(
+          error,
+          {
+            code: ErrorCodes.KERNEL,
+
+            context: {
+              operation: "stop",
+            },
           },
-        },
-      );
+        );
 
       throw appError;
     }
@@ -185,6 +319,7 @@ export class AppKernel
 
   async restart(): Promise<void> {
     await this.stop();
+
     await this.start();
   }
 
