@@ -1,61 +1,50 @@
-import { aiProviderManager } from "@/core/ai";
-import { contextEngine } from "@/core/context";
-import { intelligenceEngine } from "@/core/intelligence";
+import {
+  aiProviderManager,
+} from "@/core/ai";
 
-import type { IntelligenceContext, IntelligenceInput } from "@/core/intelligence";
+import {
+  keiRequestGateway,
+} from "@/core/runtime";
 
-import type { BrainRequest, BrainResponse } from "./types";
+import type {
+  BrainRequest,
+  BrainResponse,
+} from "./types";
 
 export class Brain {
   async initialize(): Promise<void> {
-    const provider = aiProviderManager.getActive();
+    const provider =
+      aiProviderManager.getActive();
 
     await provider.initialize();
   }
 
-  async ask(request: BrainRequest): Promise<BrainResponse> {
-    const requestId = request.id ?? crypto.randomUUID();
-
-    const input: IntelligenceInput = {
-      id: requestId,
-      type: request.type ?? this.resolveInputType(request),
-      text: request.text,
-      audio: request.audio,
-      timestamp: new Date(),
-    };
-
-    const context: IntelligenceContext = {
-      requestId,
-      input,
-      context: contextEngine.createSnapshot(requestId),
-      metadata: request.metadata,
-    };
-
-    return this.processRequest(context);
-  }
-
-  async shutdown(): Promise<void> {
-    const provider = aiProviderManager.getActive();
-
-    await provider.dispose();
-  }
-
-  private async processRequest(context: IntelligenceContext): Promise<BrainResponse> {
-    const result = await intelligenceEngine.process(context);
+  async ask(
+    request: BrainRequest,
+  ): Promise<BrainResponse> {
+    const result =
+      await keiRequestGateway.process({
+        text: request.text,
+        audio: request.audio,
+        type: request.type,
+        metadata: request.metadata,
+      });
 
     return {
       requestId: result.requestId,
-      text: result.text,
+      text: result.outcome.message,
+      outcome: result.outcome.type,
+      success: result.outcome.success,
     };
   }
 
-  private resolveInputType(request: BrainRequest): "text" | "audio" {
-    if (request.audio) {
-      return "audio";
-    }
+  async shutdown(): Promise<void> {
+    const provider =
+      aiProviderManager.getActive();
 
-    return "text";
+    await provider.dispose();
   }
 }
 
-export const brain = new Brain();
+export const brain =
+  new Brain();

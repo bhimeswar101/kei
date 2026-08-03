@@ -1,3 +1,7 @@
+import type {
+  RequestOutcomeType,
+} from "@/core/runtime";
+
 export type BrainInputType =
   | "text"
   | "audio";
@@ -20,4 +24,8 @@ export interface BrainResponse {
   readonly requestId: string;
 
   readonly text: string;
+
+  readonly outcome: RequestOutcomeType;
+
+  readonly success: boolean;
 }

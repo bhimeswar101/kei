@@ -13,9 +13,7 @@ export class RequestOutcomeResolver {
     const execution = result.execution;
 
     if (execution) {
-      if (
-        execution.status === "completed"
-      ) {
+      if (execution.status === "completed") {
         return {
           requestId: result.requestId,
           type: "executed",
@@ -27,26 +25,22 @@ export class RequestOutcomeResolver {
         };
       }
 
-      if (
-        execution.status === "failed"
-      ) {
+      if (execution.status === "failed") {
+        const message =
+          execution.error ||
+          "The requested action could not be completed.";
+
         return {
           requestId: result.requestId,
           type: "failed",
           success: false,
-          message:
-            execution.error ||
-            "The requested action could not be completed.",
+          message,
           intelligence: result,
-          error:
-            execution.error ||
-            "Execution failed.",
+          error: message,
         };
       }
 
-      if (
-        execution.status === "cancelled"
-      ) {
+      if (execution.status === "cancelled") {
         return {
           requestId: result.requestId,
           type: "rejected",
@@ -73,13 +67,15 @@ export class RequestOutcomeResolver {
       case "clarify":
         return {
           requestId: result.requestId,
-          type:
-            "clarification-required",
+          type: "clarification-required",
           success: false,
+
+          // Reasoning owns the explanation for
+          // why clarification is required.
           message:
-            result.text ||
             result.decision.reason ||
             "I need more information before I can continue.",
+
           intelligence: result,
         };
 
@@ -90,7 +86,6 @@ export class RequestOutcomeResolver {
           success: false,
           message:
             result.decision.reason ||
-            result.text ||
             "The request was rejected.",
           intelligence: result,
         };
@@ -102,7 +97,6 @@ export class RequestOutcomeResolver {
           success: false,
           message:
             result.decision.reason ||
-            result.text ||
             "The request has been deferred.",
           intelligence: result,
         };
@@ -130,32 +124,6 @@ export class RequestOutcomeResolver {
           intelligence: result,
         };
     }
-  }
-
-  failure(
-    requestId: string,
-    error: unknown,
-    intelligence?: IntelligenceResult,
-  ): RequestOutcome | undefined {
-    if (!intelligence) {
-      return undefined;
-    }
-
-    const message =
-      error instanceof Error
-        ? error.message
-        : typeof error === "string"
-          ? error
-          : "The request failed.";
-
-    return {
-      requestId,
-      type: "failed",
-      success: false,
-      message,
-      intelligence,
-      error: message,
-    };
   }
 }
 
