@@ -16,26 +16,36 @@ export interface DeterministicResponseFallbackContract {
 export class DeterministicResponseFallback
   implements DeterministicResponseFallbackContract
 {
-  generate(
-    input: ResponseSynthesisInput,
-  ): GeneratedAIResponse {
-    const content =
-      responseContentBuilder.build(
-        input,
-      );
+ generate(
+  input: ResponseSynthesisInput,
+): GeneratedAIResponse {
+  const content =
+    responseContentBuilder.build(
+      input,
+    );
 
-    return {
-      text: this.buildFallbackText(
-        content.strategy,
-      ),
+  return {
+    text: this.buildFallbackText(
+      content.strategy,
+    ),
 
-      grounded:
-        content.grounded,
+    grounded:
+      content.grounded,
 
-      strategy:
-        content.strategy,
-    };
-  }
+    strategy:
+      content.strategy,
+
+    success:
+      content.strategy !==
+        "execution-failure" &&
+      content.strategy !==
+        "cancelled" &&
+      content.strategy !==
+        "rejection" &&
+      content.strategy !==
+        "unsupported",
+  };
+}
 
   private buildFallbackText(
     strategy: GeneratedAIResponse["strategy"],

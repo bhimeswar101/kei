@@ -40,11 +40,15 @@ export class AIResponseGenerator
     return responseNormalizer.normalize({
   text: response.text,
 
-  grounded:
-    content.grounded,
+  grounded: content.grounded,
 
-  strategy:
-    content.strategy,
+  strategy: content.strategy,
+
+  success:
+    content.strategy !== "execution-failure" &&
+    content.strategy !== "cancelled" &&
+    content.strategy !== "rejection" &&
+    content.strategy !== "unsupported",
 });
   } catch {
     return responseNormalizer.normalize(

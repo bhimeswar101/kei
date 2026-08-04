@@ -190,7 +190,10 @@ export interface GeneratedAIResponse {
 
   readonly grounded: boolean;
 
-  readonly strategy: ResponseStrategy;
+  readonly strategy:
+    ResponseStrategy;
+
+  readonly success: boolean;
 }
 
 export interface AIResponseGeneratorContract {
