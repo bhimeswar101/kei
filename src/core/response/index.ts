@@ -13,4 +13,5 @@ export * from "./KeiResponseSynthesisEngine";
 export * from "./DeterministicResponseFallback";
 export * from "./ResponseNormalizer";
 export * from "./ResponseAssembler";
+export * from "./ResponseSynthesisGateway";
 export * from "./types";
