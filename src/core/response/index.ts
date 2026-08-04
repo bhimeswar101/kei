@@ -7,4 +7,5 @@ export * from "./ResponseGroundingGuard";
 export * from "./ResponseSynthesisEngine";
 export * from "./ResponseSynthesisInputBuilder";
 export * from "./ResponseStrategyResolver";
+export * from "./ResponseContentBuilder";
 export * from "./types";

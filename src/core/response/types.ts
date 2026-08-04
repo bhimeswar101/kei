@@ -170,6 +170,21 @@ export interface RejectionUnsupportedResponseSynthesizerContract {
     input: ResponseSynthesisInput,
   ): RejectionUnsupportedResponse;
 }
+export interface ResponseContent {
+  readonly strategy: ResponseStrategy;
+
+  readonly content: string;
+
+  readonly grounded: boolean;
+
+  readonly requiresProvider: boolean;
+}
+
+export interface ResponseContentBuilderContract {
+  build(
+    input: ResponseSynthesisInput,
+  ): ResponseContent;
+}
 export interface ResponseSynthesisEngineContract {
   synthesize(
     input: ResponseSynthesisInput,
