@@ -9,6 +9,7 @@ export * from "./ResponseSynthesisInputBuilder";
 export * from "./ResponseStrategyResolver";
 export * from "./ResponseContentBuilder";
 export * from "./AIResponseGenerator";
+export * from "./KeiResponseSynthesisEngine";
 export * from "./DeterministicResponseFallback";
 export * from "./ResponseNormalizer";
 export * from "./ResponseAssembler";
