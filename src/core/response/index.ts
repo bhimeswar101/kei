@@ -10,4 +10,5 @@ export * from "./ResponseStrategyResolver";
 export * from "./ResponseContentBuilder";
 export * from "./AIResponseGenerator";
 export * from "./DeterministicResponseFallback";
+export * from "./ResponseNormalizer";
 export * from "./types";

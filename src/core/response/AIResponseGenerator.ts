@@ -13,7 +13,9 @@ import type {
   GeneratedAIResponse,
   ResponseSynthesisInput,
 } from "./types";
-
+import {
+  responseNormalizer,
+} from "./ResponseNormalizer";
 
 export class AIResponseGenerator
   implements AIResponseGeneratorContract
@@ -35,19 +37,21 @@ export class AIResponseGenerator
         text: content.content,
       });
 
-    return {
-      text: response.text,
+    return responseNormalizer.normalize({
+  text: response.text,
 
-      grounded:
-        content.grounded,
+  grounded:
+    content.grounded,
 
-      strategy:
-        content.strategy,
-    };
+  strategy:
+    content.strategy,
+});
   } catch {
-    return deterministicResponseFallback.generate(
-      input,
-    );
+    return responseNormalizer.normalize(
+  deterministicResponseFallback.generate(
+    input,
+  ),
+);
   }
 }
 }
