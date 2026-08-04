@@ -8,4 +8,5 @@ export * from "./ResponseSynthesisEngine";
 export * from "./ResponseSynthesisInputBuilder";
 export * from "./ResponseStrategyResolver";
 export * from "./ResponseContentBuilder";
+export * from "./AIResponseGenerator";
 export * from "./types";

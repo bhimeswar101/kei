@@ -185,6 +185,19 @@ export interface ResponseContentBuilderContract {
     input: ResponseSynthesisInput,
   ): ResponseContent;
 }
+export interface GeneratedAIResponse {
+  readonly text: string;
+
+  readonly grounded: boolean;
+
+  readonly strategy: ResponseStrategy;
+}
+
+export interface AIResponseGeneratorContract {
+  generate(
+    input: ResponseSynthesisInput,
+  ): Promise<GeneratedAIResponse>;
+}
 export interface ResponseSynthesisEngineContract {
   synthesize(
     input: ResponseSynthesisInput,
