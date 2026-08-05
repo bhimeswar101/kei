@@ -1,13 +1,8 @@
 import type { ContextSnapshot } from "@/core/context";
 import type { CapabilityResolution } from "@/core/capabilities";
 import type { PlanningResult } from "@/core/planning";
-import type {
-  RequestEntity,
-  RequestReference,
-} from "@/core/understanding";
-import type {
-  ExecutionResult,
-} from "@/core/execution";
+import type { RequestEntity, RequestReference } from "@/core/understanding";
+import type { ExecutionResult } from "@/core/execution";
 export type IntelligenceInputType = "text" | "audio" | "vision" | "system";
 
 export type IntelligenceIntent = "conversation" | "question" | "action" | "automation" | "unknown";
@@ -64,13 +59,11 @@ export interface IntelligenceUnderstanding {
   readonly requiresContext: boolean;
 
   readonly entities: readonly RequestEntity[];
-readonly references: readonly RequestReference[];
+  readonly references: readonly RequestReference[];
 }
 
 export interface IntelligenceResult {
   readonly requestId: string;
-
-  readonly text: string;
 
   readonly decision: IntelligenceDecision;
 

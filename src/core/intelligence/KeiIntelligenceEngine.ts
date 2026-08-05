@@ -82,8 +82,6 @@ export class KeiIntelligenceEngine extends BaseIntelligenceEngine {
       const resultBeforePlanning: IntelligenceResult = {
         requestId: context.requestId,
 
-        text: "",
-
         decision,
 
         understanding: intelligenceUnderstanding,
@@ -109,8 +107,6 @@ export class KeiIntelligenceEngine extends BaseIntelligenceEngine {
        */
       const resultBeforeExecution: IntelligenceResult = {
         requestId: context.requestId,
-
-        text: "",
 
         decision,
 
@@ -139,8 +135,6 @@ export class KeiIntelligenceEngine extends BaseIntelligenceEngine {
        */
       const result: IntelligenceResult = {
         requestId: context.requestId,
-
-        text: "",
 
         decision,
 
