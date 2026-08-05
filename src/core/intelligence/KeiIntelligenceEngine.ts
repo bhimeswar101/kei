@@ -1,29 +1,14 @@
-import { aiProviderManager } from "@/core/ai";
-import {
-  capabilityQueryBuilder,
-  capabilityResolver,
-} from "@/core/capabilities";
-import {
-  planningEngine,
-  planningInputBuilder,
-} from "@/core/planning";
+import { capabilityQueryBuilder, capabilityResolver } from "@/core/capabilities";
+
+import { executionEngine, executionInputBuilder } from "@/core/execution";
+
+import { planningEngine, planningInputBuilder } from "@/core/planning";
+
+import { reasoningEngine, reasoningInputBuilder } from "@/core/reasoning";
+
+import { requestUnderstandingEngine } from "@/core/understanding";
+
 import { BaseIntelligenceEngine } from "./IntelligenceEngine";
-import {
-  aiResponseContextBuilder,
-} from "./AIResponseContextBuilder";
-import {
-  reasoningEngine,
-  reasoningInputBuilder,
-} from "@/core/reasoning";
-import {
-  requestUnderstandingEngine,
-} from "@/core/understanding";
-
-
-import {
-  executionEngine,
-  executionInputBuilder,
-} from "@/core/execution";
 
 import type {
   IntelligenceContext,
@@ -32,132 +17,83 @@ import type {
   IntelligenceUnderstanding,
 } from "./types";
 
-export class KeiIntelligenceEngine
-  extends BaseIntelligenceEngine
-{
-  async process(
-    context: IntelligenceContext,
-  ): Promise<IntelligenceResult> {
+export class KeiIntelligenceEngine extends BaseIntelligenceEngine {
+  async process(context: IntelligenceContext): Promise<IntelligenceResult> {
     if (this.isProcessing()) {
-      throw new Error(
-        "The intelligence engine is already processing a request.",
-      );
+      throw new Error("The intelligence engine is already processing a request.");
     }
 
     this.status = "processing";
 
     try {
       // 4.3 — Understand the request
-      const understanding =
-        await requestUnderstandingEngine.understand(
-          context,
-        );
+      const understanding = await requestUnderstandingEngine.understand(context);
 
       // 4.4 — Build reasoning input
-      const reasoningInput =
-        reasoningInputBuilder.build(
-          understanding,
-        );
+      const reasoningInput = reasoningInputBuilder.build(understanding);
 
       // 4.4 — Decide what Kei should do
-      const reasoningResult =
-        await reasoningEngine.reason(
-          context,
-          reasoningInput,
-        );
+      const reasoningResult = await reasoningEngine.reason(context, reasoningInput);
 
       const decision: IntelligenceDecision = {
-        type:
-          reasoningResult.decision.type,
+        type: reasoningResult.decision.type,
 
-        intent:
-          reasoningResult.decision.intent,
+        intent: reasoningResult.decision.intent,
 
-        requiresAction:
-          reasoningResult.decision
-            .requiresAction,
+        requiresAction: reasoningResult.decision.requiresAction,
 
-        requiresPlanning:
-          reasoningResult.decision
-            .requiresPlanning,
+        requiresPlanning: reasoningResult.decision.requiresPlanning,
 
-        requiresCapability:
-          reasoningResult.decision
-            .requiresCapability,
+        requiresCapability: reasoningResult.decision.requiresCapability,
 
-        requiresClarification:
-          reasoningResult.decision
-            .requiresClarification,
+        requiresClarification: reasoningResult.decision.requiresClarification,
 
-        confidence:
-          reasoningResult.decision
-            .confidence,
+        confidence: reasoningResult.decision.confidence,
 
-        reason:
-          reasoningResult.decision.reason,
+        reason: reasoningResult.decision.reason,
       };
 
-      const intelligenceUnderstanding:
-        IntelligenceUnderstanding = {
-        originalText:
-          understanding.originalText,
+      const intelligenceUnderstanding: IntelligenceUnderstanding = {
+        originalText: understanding.originalText,
 
-        normalizedText:
-          understanding.normalizedText,
+        normalizedText: understanding.normalizedText,
 
-        status:
-          understanding.status,
+        status: understanding.status,
 
-        requiresContext:
-          understanding.requiresContext,
+        requiresContext: understanding.requiresContext,
 
-        entities:
-          understanding.entities,
+        entities: understanding.entities,
 
-        references:
-          understanding.references,
+        references: understanding.references,
       };
 
       // 4.5 — Resolve required capability
-      const capability =
-        decision.requiresCapability
-          ? await capabilityResolver.resolve(
-              context,
-              capabilityQueryBuilder.build(
-                context.requestId,
-                intelligenceUnderstanding,
-                decision,
-              ),
-            )
-          : undefined;
+      const capability = decision.requiresCapability
+        ? await capabilityResolver.resolve(
+            context,
+            capabilityQueryBuilder.build(context.requestId, intelligenceUnderstanding, decision),
+          )
+        : undefined;
 
       /*
-       * Build the partial intelligence result needed
-       * by the planning input builder.
-       *
-       * Planning runs only when reasoning requires it
-       * and capability resolution found a selected
-       * capability.
+       * Build the partial intelligence result
+       * required by the planning layer.
        */
-      const resultBeforePlanning:
-        IntelligenceResult = {
+      const resultBeforePlanning: IntelligenceResult = {
         requestId: context.requestId,
 
         text: "",
 
         decision,
 
-        understanding:
-          intelligenceUnderstanding,
+        understanding: intelligenceUnderstanding,
 
         capability,
       };
 
       // 4.6 — Create execution plan
       const planning =
-        decision.requiresPlanning &&
-        capability?.available === true &&
-        capability.selected
+        decision.requiresPlanning && capability?.available === true && capability.selected
           ? await planningEngine.createPlan(
               planningInputBuilder.build(
                 context,
@@ -166,68 +102,56 @@ export class KeiIntelligenceEngine
               ),
             )
           : undefined;
-          const resultBeforeExecution:
-  IntelligenceResult = {
-  requestId: context.requestId,
 
-  text: "",
+      /*
+       * Build the intelligence result required
+       * by the execution input builder.
+       */
+      const resultBeforeExecution: IntelligenceResult = {
+        requestId: context.requestId,
 
-  decision,
+        text: "",
 
-  understanding:
-    intelligenceUnderstanding,
+        decision,
 
-  capability,
+        understanding: intelligenceUnderstanding,
 
-  planning,
-};
+        capability,
 
-// 4.7 — Execute eligible plan
-const executionEligibility =
-  executionInputBuilder.canExecute(
-    resultBeforeExecution,
-  );
+        planning,
+      };
 
-const execution =
-  executionEligibility.allowed
-    ? await executionEngine.execute(
-        executionInputBuilder.build(
-          resultBeforeExecution,
-        ),
-      )
-    : undefined;
+      // 4.7 — Execute eligible plan
+      const executionEligibility = executionInputBuilder.canExecute(resultBeforeExecution);
 
-      const provider =
-  aiProviderManager.getActive();
+      const execution = executionEligibility.allowed
+        ? await executionEngine.execute(executionInputBuilder.build(resultBeforeExecution))
+        : undefined;
 
-const responseContext =
-  aiResponseContextBuilder.build({
-    originalText: context.input.text,
-    execution,
-  });
-
-const response =
-  await provider.send({
-    text: responseContext,
-    audio: context.input.audio,
-  });
-
+      /*
+       * Intelligence ends with structured
+       * understanding, reasoning, capability,
+       * planning, and execution information.
+       *
+       * User-facing response generation belongs
+       * exclusively to the response synthesis
+       * pipeline.
+       */
       const result: IntelligenceResult = {
-  requestId: context.requestId,
+        requestId: context.requestId,
 
-  text: response.text,
+        text: "",
 
-  decision,
+        decision,
 
-  understanding:
-    intelligenceUnderstanding,
+        understanding: intelligenceUnderstanding,
 
-  capability,
+        capability,
 
-  planning,
+        planning,
 
-  execution,
-};
+        execution,
+      };
 
       this.status = "completed";
 
@@ -240,5 +164,4 @@ const response =
   }
 }
 
-export const intelligenceEngine =
-  new KeiIntelligenceEngine();
+export const intelligenceEngine = new KeiIntelligenceEngine();
