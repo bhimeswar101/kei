@@ -1,14 +1,10 @@
 import { validateEnvironment } from "@/core/config";
-import {
-  ErrorCodes,
-  handleError,
-} from "@/core/errors";
+
+import { ErrorCodes, handleError } from "@/core/errors";
+
 import { lifecycle } from "@/core/lifecycle";
 
-import type {
-  RuntimeContract,
-  RuntimeState,
-} from "./types";
+import type { RuntimeContract, RuntimeState } from "./types";
 
 export class Runtime implements RuntimeContract {
   private currentState: RuntimeState = "idle";
@@ -22,32 +18,30 @@ export class Runtime implements RuntimeContract {
   }
 
   async start(): Promise<void> {
-    if (
-      this.currentState === "running" ||
-      this.currentState === "starting"
-    ) {
+    if (this.currentState === "running" || this.currentState === "starting") {
       return;
     }
 
     this.currentState = "starting";
 
     try {
-      console.info("🚀 Starting Kei Runtime...");
+      console.info("[Runtime] Starting Kei Runtime...");
 
       validateEnvironment();
 
-      console.info("✓ Configuration Valid");
+      console.info("[Runtime] Configuration valid.");
 
       await lifecycle.start();
 
       this.currentState = "running";
 
-      console.info("✅ Kei Runtime Running");
+      console.info("[Runtime] Kei Runtime running.");
     } catch (error) {
       this.currentState = "error";
 
       const appError = handleError(error, {
         code: ErrorCodes.RUNTIME,
+
         context: {
           operation: "start",
         },
@@ -69,18 +63,19 @@ export class Runtime implements RuntimeContract {
     this.currentState = "stopping";
 
     try {
-      console.info("🛑 Stopping Kei Runtime...");
+      console.info("[Runtime] Stopping Kei Runtime...");
 
       await lifecycle.stop();
 
       this.currentState = "stopped";
 
-      console.info("✅ Kei Runtime Stopped");
+      console.info("[Runtime] Kei Runtime stopped.");
     } catch (error) {
       this.currentState = "error";
 
       const appError = handleError(error, {
         code: ErrorCodes.RUNTIME,
+
         context: {
           operation: "stop",
         },
@@ -92,6 +87,7 @@ export class Runtime implements RuntimeContract {
 
   async restart(): Promise<void> {
     await this.stop();
+
     await this.start();
   }
 }
