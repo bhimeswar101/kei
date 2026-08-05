@@ -1,55 +1,32 @@
-import {
-  responseContentBuilder,
-} from "./ResponseContentBuilder";
+import { responseContentBuilder } from "./ResponseContentBuilder";
 
-import type {
-  GeneratedAIResponse,
-  ResponseSynthesisInput,
-} from "./types";
+import type { GeneratedAIResponse, ResponseSynthesisInput } from "./types";
 
 export interface DeterministicResponseFallbackContract {
-  generate(
-    input: ResponseSynthesisInput,
-  ): GeneratedAIResponse;
+  generate(input: ResponseSynthesisInput): GeneratedAIResponse;
 }
 
-export class DeterministicResponseFallback
-  implements DeterministicResponseFallbackContract
-{
- generate(
-  input: ResponseSynthesisInput,
-): GeneratedAIResponse {
-  const content =
-    responseContentBuilder.build(
-      input,
-    );
+export class DeterministicResponseFallback implements DeterministicResponseFallbackContract {
+  generate(input: ResponseSynthesisInput): GeneratedAIResponse {
+    const content = responseContentBuilder.build(input);
 
-  return {
-    text: this.buildFallbackText(
-      content.strategy,
-    ),
+    return {
+      text: this.buildFallbackText(content.strategy),
 
-    grounded:
-      content.grounded,
+      grounded: content.grounded,
 
-    strategy:
-      content.strategy,
+      strategy: content.strategy,
 
-    success:
-      content.strategy !==
-        "execution-failure" &&
-      content.strategy !==
-        "cancelled" &&
-      content.strategy !==
-        "rejection" &&
-      content.strategy !==
-        "unsupported",
-  };
-}
+      success:
+        content.strategy !== "execution-failure" &&
+        content.strategy !== "cancelled" &&
+        content.strategy !== "rejection" &&
+        content.strategy !== "unsupported",
+      source: "fallback",
+    };
+  }
 
-  private buildFallbackText(
-    strategy: GeneratedAIResponse["strategy"],
-  ): string {
+  private buildFallbackText(strategy: GeneratedAIResponse["strategy"]): string {
     switch (strategy) {
       case "conversation":
         return "I'm unable to generate a conversational response right now.";
@@ -78,5 +55,4 @@ export class DeterministicResponseFallback
   }
 }
 
-export const deterministicResponseFallback =
-  new DeterministicResponseFallback();
+export const deterministicResponseFallback = new DeterministicResponseFallback();

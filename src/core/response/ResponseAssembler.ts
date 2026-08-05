@@ -1,23 +1,11 @@
-import type {
-  GeneratedAIResponse,
-  ResponseSource,
-  SynthesizedResponse,
-} from "./types";
+import type { GeneratedAIResponse, SynthesizedResponse } from "./types";
 
 export interface ResponseAssemblerContract {
-  assemble(
-    requestId: string,
-    response: GeneratedAIResponse,
-  ): SynthesizedResponse;
+  assemble(requestId: string, response: GeneratedAIResponse): SynthesizedResponse;
 }
 
-export class ResponseAssembler
-  implements ResponseAssemblerContract
-{
-  assemble(
-    requestId: string,
-    response: GeneratedAIResponse,
-  ): SynthesizedResponse {
+export class ResponseAssembler implements ResponseAssemblerContract {
+  assemble(requestId: string, response: GeneratedAIResponse): SynthesizedResponse {
     return {
       requestId,
 
@@ -25,49 +13,19 @@ export class ResponseAssembler
 
       strategy: response.strategy,
 
-      source:
-        this.resolveSource(
-          response,
-        ),
+      source: response.source,
 
       success: response.success,
 
-      grounded:
-        response.grounded,
+      grounded: response.grounded,
 
-      fallbackUsed:
-        response.strategy !==
-        "conversation" &&
-        response.strategy !==
-        "execution-success",
+      fallbackUsed: response.source === "fallback",
 
       metadata: {
-        assembledAt:
-          new Date(),
+        assembledAt: new Date(),
       },
     };
   }
-
-  private resolveSource(
-    response: GeneratedAIResponse,
-  ): ResponseSource {
-    if (
-      response.strategy ===
-      "conversation"
-    ) {
-      return "provider";
-    }
-
-    if (
-      response.strategy ===
-      "execution-success"
-    ) {
-      return "provider";
-    }
-
-    return "fallback";
-  }
 }
 
-export const responseAssembler =
-  new ResponseAssembler();
+export const responseAssembler = new ResponseAssembler();

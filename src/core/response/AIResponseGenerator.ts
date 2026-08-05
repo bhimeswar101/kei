@@ -1,64 +1,47 @@
-import {
-  aiProviderManager,
-} from "@/core/ai";
+import { aiProviderManager } from "@/core/ai";
 
-import {
-  responseContentBuilder,
-} from "./ResponseContentBuilder";
-import {
-  deterministicResponseFallback,
-} from "./DeterministicResponseFallback";
+import { deterministicResponseFallback } from "./DeterministicResponseFallback";
+
+import { responseContentBuilder } from "./ResponseContentBuilder";
+
+import { responseNormalizer } from "./ResponseNormalizer";
+
 import type {
   AIResponseGeneratorContract,
   GeneratedAIResponse,
   ResponseSynthesisInput,
 } from "./types";
-import {
-  responseNormalizer,
-} from "./ResponseNormalizer";
 
-export class AIResponseGenerator
-  implements AIResponseGeneratorContract
-{
-  async generate(
-  input: ResponseSynthesisInput,
-): Promise<GeneratedAIResponse> {
-  const content =
-    responseContentBuilder.build(
-      input,
-    );
+export class AIResponseGenerator implements AIResponseGeneratorContract {
+  async generate(input: ResponseSynthesisInput): Promise<GeneratedAIResponse> {
+    const content = responseContentBuilder.build(input);
 
-  const provider =
-    aiProviderManager.getActive();
+    const provider = aiProviderManager.getActive();
 
-  try {
-    const response =
-      await provider.send({
+    try {
+      const response = await provider.send({
         text: content.content,
       });
 
-    return responseNormalizer.normalize({
-  text: response.text,
+      return responseNormalizer.normalize({
+        text: response.text,
 
-  grounded: content.grounded,
+        grounded: content.grounded,
 
-  strategy: content.strategy,
+        strategy: content.strategy,
 
-  success:
-    content.strategy !== "execution-failure" &&
-    content.strategy !== "cancelled" &&
-    content.strategy !== "rejection" &&
-    content.strategy !== "unsupported",
-});
-  } catch {
-    return responseNormalizer.normalize(
-  deterministicResponseFallback.generate(
-    input,
-  ),
-);
+        success:
+          content.strategy !== "execution-failure" &&
+          content.strategy !== "cancelled" &&
+          content.strategy !== "rejection" &&
+          content.strategy !== "unsupported",
+
+        source: "provider",
+      });
+    } catch {
+      return responseNormalizer.normalize(deterministicResponseFallback.generate(input));
+    }
   }
 }
-}
 
-export const aiResponseGenerator =
-  new AIResponseGenerator();
+export const aiResponseGenerator = new AIResponseGenerator();

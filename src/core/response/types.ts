@@ -1,14 +1,6 @@
-import type {
-  IntelligenceResult,
-} from "@/core/intelligence";
-import type {
-  ExecutionInterpretation,
-} from "@/core/execution";
-export type ResponseSynthesisStatus =
-  | "idle"
-  | "synthesizing"
-  | "completed"
-  | "error";
+import type { IntelligenceResult } from "@/core/intelligence";
+import type { ExecutionInterpretation } from "@/core/execution";
+export type ResponseSynthesisStatus = "idle" | "synthesizing" | "completed" | "error";
 
 export type ResponseStrategy =
   | "conversation"
@@ -20,22 +12,16 @@ export type ResponseStrategy =
   | "cancelled"
   | "deferred";
 
-export type ResponseSource =
-  | "provider"
-  | "deterministic"
-  | "fallback";
+export type ResponseSource = "provider" | "deterministic" | "fallback";
 
 export interface ResponseSynthesisInput {
   readonly requestId: string;
 
   readonly originalText?: string;
 
-  readonly intelligence:
-    IntelligenceResult;
+  readonly intelligence: IntelligenceResult;
 
-  readonly metadata?: Readonly<
-    Record<string, unknown>
-  >;
+  readonly metadata?: Readonly<Record<string, unknown>>;
 }
 
 export interface SynthesizedResponse {
@@ -43,11 +29,9 @@ export interface SynthesizedResponse {
 
   readonly text: string;
 
-  readonly strategy:
-    ResponseStrategy;
+  readonly strategy: ResponseStrategy;
 
-  readonly source:
-    ResponseSource;
+  readonly source: ResponseSource;
 
   readonly success: boolean;
 
@@ -55,23 +39,16 @@ export interface SynthesizedResponse {
 
   readonly fallbackUsed: boolean;
 
-  readonly metadata?: Readonly<
-    Record<string, unknown>
-  >;
+  readonly metadata?: Readonly<Record<string, unknown>>;
 }
 export interface ExecutionAwareResponse {
-  readonly strategy:
-    | "execution-success"
-    | "execution-failure"
-    | "cancelled"
-    | "deferred";
+  readonly strategy: "execution-success" | "execution-failure" | "cancelled" | "deferred";
 
   readonly success: boolean;
 
   readonly grounded: true;
 
-  readonly interpretation:
-    ExecutionInterpretation;
+  readonly interpretation: ExecutionInterpretation;
 
   readonly summary: string;
 
@@ -79,14 +56,10 @@ export interface ExecutionAwareResponse {
 }
 
 export interface ExecutionAwareResponseSynthesizerContract {
-  synthesize(
-    input: ResponseSynthesisInput,
-  ): ExecutionAwareResponse;
+  synthesize(input: ResponseSynthesisInput): ExecutionAwareResponse;
 }
 export interface FailureCancellationResponse {
-  readonly strategy:
-    | "execution-failure"
-    | "cancelled";
+  readonly strategy: "execution-failure" | "cancelled";
 
   readonly success: false;
 
@@ -104,9 +77,7 @@ export interface FailureCancellationResponse {
 }
 
 export interface FailureCancellationResponseSynthesizerContract {
-  synthesize(
-    input: ResponseSynthesisInput,
-  ): FailureCancellationResponse;
+  synthesize(input: ResponseSynthesisInput): FailureCancellationResponse;
 }
 export interface ConversationalResponse {
   readonly strategy: "conversation";
@@ -121,9 +92,7 @@ export interface ConversationalResponse {
 }
 
 export interface ConversationalResponseSynthesizerContract {
-  synthesize(
-    input: ResponseSynthesisInput,
-  ): ConversationalResponse;
+  synthesize(input: ResponseSynthesisInput): ConversationalResponse;
 }
 export interface ClarificationResponse {
   readonly strategy: "clarification";
@@ -136,8 +105,7 @@ export interface ClarificationResponse {
 
   readonly reason?: string;
 
-  readonly unresolvedReferences:
-    readonly string[];
+  readonly unresolvedReferences: readonly string[];
 
   readonly requiresContext: boolean;
 
@@ -145,14 +113,10 @@ export interface ClarificationResponse {
 }
 
 export interface ClarificationResponseSynthesizerContract {
-  synthesize(
-    input: ResponseSynthesisInput,
-  ): ClarificationResponse;
+  synthesize(input: ResponseSynthesisInput): ClarificationResponse;
 }
 export interface RejectionUnsupportedResponse {
-  readonly strategy:
-    | "rejection"
-    | "unsupported";
+  readonly strategy: "rejection" | "unsupported";
 
   readonly success: false;
 
@@ -166,9 +130,7 @@ export interface RejectionUnsupportedResponse {
 }
 
 export interface RejectionUnsupportedResponseSynthesizerContract {
-  synthesize(
-    input: ResponseSynthesisInput,
-  ): RejectionUnsupportedResponse;
+  synthesize(input: ResponseSynthesisInput): RejectionUnsupportedResponse;
 }
 export interface ResponseContent {
   readonly strategy: ResponseStrategy;
@@ -181,33 +143,27 @@ export interface ResponseContent {
 }
 
 export interface ResponseContentBuilderContract {
-  build(
-    input: ResponseSynthesisInput,
-  ): ResponseContent;
+  build(input: ResponseSynthesisInput): ResponseContent;
 }
 export interface GeneratedAIResponse {
   readonly text: string;
 
   readonly grounded: boolean;
 
-  readonly strategy:
-    ResponseStrategy;
+  readonly strategy: ResponseStrategy;
 
   readonly success: boolean;
+
+  readonly source: ResponseSource;
 }
 
 export interface AIResponseGeneratorContract {
-  generate(
-    input: ResponseSynthesisInput,
-  ): Promise<GeneratedAIResponse>;
+  generate(input: ResponseSynthesisInput): Promise<GeneratedAIResponse>;
 }
 export interface ResponseSynthesisEngineContract {
-  synthesize(
-    input: ResponseSynthesisInput,
-  ): Promise<SynthesizedResponse>;
+  synthesize(input: ResponseSynthesisInput): Promise<SynthesizedResponse>;
 
-  getStatus():
-    ResponseSynthesisStatus;
+  getStatus(): ResponseSynthesisStatus;
 
   isSynthesizing(): boolean;
 }
