@@ -16,8 +16,6 @@ export interface RequestOutcome {
 
   readonly success: boolean;
 
-  readonly message: string;
-
   readonly intelligence: IntelligenceResult;
 
   readonly error?: string;

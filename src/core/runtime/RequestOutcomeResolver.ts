@@ -20,14 +20,10 @@ export class RequestOutcomeResolver {
 
             success: true,
 
-            message: "The requested action was completed.",
-
             intelligence: result,
           };
 
-        case "failed": {
-          const message = interpretation.error || "The requested action could not be completed.";
-
+        case "failed":
           return {
             requestId: result.requestId,
 
@@ -35,13 +31,10 @@ export class RequestOutcomeResolver {
 
             success: false,
 
-            message,
-
             intelligence: result,
 
-            error: message,
+            error: interpretation.error || "The requested action could not be completed.",
           };
-        }
 
         case "cancelled":
           return {
@@ -50,8 +43,6 @@ export class RequestOutcomeResolver {
             type: "rejected",
 
             success: false,
-
-            message: "The requested action was cancelled.",
 
             intelligence: result,
           };
@@ -63,8 +54,6 @@ export class RequestOutcomeResolver {
             type: "deferred",
 
             success: false,
-
-            message: "The requested action has not completed yet.",
 
             intelligence: result,
           };
@@ -80,8 +69,6 @@ export class RequestOutcomeResolver {
 
           success: true,
 
-          message: "The request was processed.",
-
           intelligence: result,
         };
 
@@ -92,8 +79,6 @@ export class RequestOutcomeResolver {
           type: "clarification-required",
 
           success: false,
-
-          message: result.decision.reason || "I need more information before I can continue.",
 
           intelligence: result,
         };
@@ -106,8 +91,6 @@ export class RequestOutcomeResolver {
 
           success: false,
 
-          message: result.decision.reason || "The request was rejected.",
-
           intelligence: result,
         };
 
@@ -118,8 +101,6 @@ export class RequestOutcomeResolver {
           type: "deferred",
 
           success: false,
-
-          message: result.decision.reason || "The request has been deferred.",
 
           intelligence: result,
         };
@@ -132,8 +113,6 @@ export class RequestOutcomeResolver {
 
           success: false,
 
-          message: result.decision.reason || "Kei could not execute this request.",
-
           intelligence: result,
         };
 
@@ -145,9 +124,6 @@ export class RequestOutcomeResolver {
           type: "unsupported",
 
           success: false,
-
-          message:
-            result.decision.reason || "Kei does not currently know how to handle this request.",
 
           intelligence: result,
         };
