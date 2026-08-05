@@ -5,13 +5,25 @@ import { keiRequestGateway } from "@/core/runtime";
 import type { BrainRequest, BrainResponse } from "./types";
 
 export class Brain {
+  private initialized = false;
+
   async initialize(): Promise<void> {
+    if (this.initialized) {
+      return;
+    }
+
     const provider = aiProviderManager.getActive();
 
     await provider.initialize();
+
+    this.initialized = true;
   }
 
   async ask(request: BrainRequest): Promise<BrainResponse> {
+    if (!this.initialized) {
+      throw new Error("Kei Brain is not initialized.");
+    }
+
     const result = await keiRequestGateway.process({
       text: request.text,
       audio: request.audio,
@@ -39,9 +51,19 @@ export class Brain {
   }
 
   async shutdown(): Promise<void> {
+    if (!this.initialized) {
+      return;
+    }
+
     const provider = aiProviderManager.getActive();
 
     await provider.dispose();
+
+    this.initialized = false;
+  }
+
+  isInitialized(): boolean {
+    return this.initialized;
   }
 }
 
