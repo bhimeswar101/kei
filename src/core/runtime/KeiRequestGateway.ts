@@ -1,5 +1,5 @@
 import { contextEngine } from "@/core/context";
-import { responseSynthesisGateway } from "@/core/response";
+
 import { intelligenceEngine } from "@/core/intelligence";
 
 import type {
@@ -8,9 +8,15 @@ import type {
   IntelligenceResult,
 } from "@/core/intelligence";
 
-import { requestOutcomeResolver } from "./RequestOutcomeResolver";
+import { responseSynthesisGateway } from "@/core/response";
+
 import type { SynthesizedResponse } from "@/core/response";
+
 import type { RequestOutcome } from "./RequestOutcome";
+
+import { requestOutcomeResolver } from "./RequestOutcomeResolver";
+
+import { requestStateManager } from "./RequestStateManager";
 
 export interface KeiRequestInput {
   readonly text?: string;
@@ -36,38 +42,48 @@ export class KeiRequestGateway {
   async process(input: KeiRequestInput): Promise<KeiRequestResult> {
     const requestId = this.createRequestId();
 
-    const context: IntelligenceContext = {
-      requestId,
+    requestStateManager.begin(requestId);
 
-      input: {
-        id: `${requestId}:input`,
+    try {
+      const context: IntelligenceContext = {
+        requestId,
 
-        type: input.type ?? this.resolveInputType(input),
+        input: {
+          id: `${requestId}:input`,
 
-        text: input.text,
+          type: input.type ?? this.resolveInputType(input),
 
-        audio: input.audio,
+          text: input.text,
 
-        timestamp: new Date(),
-      },
+          audio: input.audio,
 
-      context: contextEngine.createSnapshot(requestId),
+          timestamp: new Date(),
+        },
 
-      metadata: input.metadata,
-    };
+        context: contextEngine.createSnapshot(requestId),
 
-    const intelligence = await intelligenceEngine.process(context);
+        metadata: input.metadata,
+      };
 
-    const outcome = requestOutcomeResolver.resolve(intelligence);
+      const intelligence = await intelligenceEngine.process(context);
 
-    const response = await responseSynthesisGateway.synthesize(context, intelligence);
+      const outcome = requestOutcomeResolver.resolve(intelligence);
 
-    return {
-      requestId,
-      outcome,
-      intelligence,
-      response,
-    };
+      const response = await responseSynthesisGateway.synthesize(context, intelligence);
+
+      requestStateManager.complete(requestId);
+
+      return {
+        requestId,
+        outcome,
+        intelligence,
+        response,
+      };
+    } catch (error) {
+      requestStateManager.fail(requestId, error);
+
+      throw error;
+    }
   }
 
   async processText(
@@ -82,7 +98,9 @@ export class KeiRequestGateway {
 
     return this.process({
       type: "text",
+
       text: normalizedText,
+
       metadata,
     });
   }
