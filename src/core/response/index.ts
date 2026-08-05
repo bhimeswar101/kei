@@ -14,4 +14,5 @@ export * from "./DeterministicResponseFallback";
 export * from "./ResponseNormalizer";
 export * from "./ResponseAssembler";
 export * from "./ResponseSynthesisGateway";
+export * from "./ResponseSuccessResolver";
 export * from "./types";

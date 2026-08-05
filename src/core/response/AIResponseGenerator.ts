@@ -6,6 +6,8 @@ import { responseContentBuilder } from "./ResponseContentBuilder";
 
 import { responseNormalizer } from "./ResponseNormalizer";
 
+import { responseSuccessResolver } from "./ResponseSuccessResolver";
+
 import type {
   AIResponseGeneratorContract,
   GeneratedAIResponse,
@@ -30,11 +32,7 @@ export class AIResponseGenerator implements AIResponseGeneratorContract {
 
         strategy: content.strategy,
 
-        success:
-          content.strategy !== "execution-failure" &&
-          content.strategy !== "cancelled" &&
-          content.strategy !== "rejection" &&
-          content.strategy !== "unsupported",
+        success: responseSuccessResolver.resolve(content.strategy),
 
         source: "provider",
       });

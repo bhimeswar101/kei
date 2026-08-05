@@ -1,5 +1,7 @@
 import { responseContentBuilder } from "./ResponseContentBuilder";
 
+import { responseSuccessResolver } from "./ResponseSuccessResolver";
+
 import type { GeneratedAIResponse, ResponseSynthesisInput } from "./types";
 
 export interface DeterministicResponseFallbackContract {
@@ -17,11 +19,8 @@ export class DeterministicResponseFallback implements DeterministicResponseFallb
 
       strategy: content.strategy,
 
-      success:
-        content.strategy !== "execution-failure" &&
-        content.strategy !== "cancelled" &&
-        content.strategy !== "rejection" &&
-        content.strategy !== "unsupported",
+      success: responseSuccessResolver.resolve(content.strategy),
+
       source: "fallback",
     };
   }
