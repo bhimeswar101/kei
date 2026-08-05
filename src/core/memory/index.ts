@@ -5,3 +5,4 @@ export * from "./types";
 export * from "./MemoryRepository";
 export * from "./LocalMemoryRepository";
 export * from "./KeiMemoryEngine";
+export * from "./MemoryContextBridge";
