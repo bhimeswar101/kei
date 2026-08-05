@@ -1,7 +1,9 @@
 import {
   contextEngine,
 } from "@/core/context";
-
+import {
+  responseSynthesisGateway,
+} from "@/core/response";
 import {
   intelligenceEngine,
 } from "@/core/intelligence";
@@ -15,7 +17,9 @@ import type {
 import {
   requestOutcomeResolver,
 } from "./RequestOutcomeResolver";
-
+import type {
+  SynthesizedResponse,
+} from "@/core/response";
 import type {
   RequestOutcome,
 } from "./RequestOutcome";
@@ -38,6 +42,9 @@ export interface KeiRequestResult {
   readonly outcome: RequestOutcome;
 
   readonly intelligence: IntelligenceResult;
+
+  readonly response:
+    SynthesizedResponse;
 }
 
 export class KeiRequestGateway {
@@ -82,11 +89,17 @@ export class KeiRequestGateway {
       requestOutcomeResolver.resolve(
         intelligence,
       );
+      const response =
+  await responseSynthesisGateway.synthesize(
+    context,
+    intelligence,
+  );
 
     return {
       requestId,
       outcome,
       intelligence,
+      response,
     };
   }
 
