@@ -1,10 +1,8 @@
-import type {
-  RequestOutcomeType,
-} from "@/core/runtime";
+import type { ResponseSource, ResponseStrategy } from "@/core/response";
 
-export type BrainInputType =
-  | "text"
-  | "audio";
+import type { RequestOutcomeType } from "@/core/runtime";
+
+export type BrainInputType = "text" | "audio";
 
 export interface BrainRequest {
   readonly id?: string;
@@ -15,9 +13,7 @@ export interface BrainRequest {
 
   readonly audio?: ArrayBuffer;
 
-  readonly metadata?: Readonly<
-    Record<string, unknown>
-  >;
+  readonly metadata?: Readonly<Record<string, unknown>>;
 }
 
 export interface BrainResponse {
@@ -28,4 +24,12 @@ export interface BrainResponse {
   readonly outcome: RequestOutcomeType;
 
   readonly success: boolean;
+
+  readonly strategy: ResponseStrategy;
+
+  readonly source: ResponseSource;
+
+  readonly grounded: boolean;
+
+  readonly fallbackUsed: boolean;
 }
