@@ -8,15 +8,27 @@ import type {
   IntelligenceResult,
 } from "@/core/intelligence";
 
+import {
+  memoryContextBridge,
+} from "@/core/memory";
+
 import { responseSynthesisGateway } from "@/core/response";
 
-import type { SynthesizedResponse } from "@/core/response";
+import type {
+  SynthesizedResponse,
+} from "@/core/response";
 
-import type { RequestOutcome } from "./RequestOutcome";
+import type {
+  RequestOutcome,
+} from "./RequestOutcome";
 
-import { requestOutcomeResolver } from "./RequestOutcomeResolver";
+import {
+  requestOutcomeResolver,
+} from "./RequestOutcomeResolver";
 
-import { requestStateManager } from "./RequestStateManager";
+import {
+  requestStateManager,
+} from "./RequestStateManager";
 
 export interface KeiRequestInput {
   readonly text?: string;
@@ -25,7 +37,9 @@ export interface KeiRequestInput {
 
   readonly type?: IntelligenceInputType;
 
-  readonly metadata?: Readonly<Record<string, unknown>>;
+  readonly metadata?: Readonly<
+    Record<string, unknown>
+  >;
 }
 
 export interface KeiRequestResult {
@@ -39,19 +53,26 @@ export interface KeiRequestResult {
 }
 
 export class KeiRequestGateway {
-  async process(input: KeiRequestInput): Promise<KeiRequestResult> {
-    const requestId = this.createRequestId();
+  async process(
+    input: KeiRequestInput,
+  ): Promise<KeiRequestResult> {
+    const requestId =
+      this.createRequestId();
 
     requestStateManager.begin(requestId);
 
     try {
+      await memoryContextBridge.hydrate();
+
       const context: IntelligenceContext = {
         requestId,
 
         input: {
           id: `${requestId}:input`,
 
-          type: input.type ?? this.resolveInputType(input),
+          type:
+            input.type ??
+            this.resolveInputType(input),
 
           text: input.text,
 
@@ -60,18 +81,33 @@ export class KeiRequestGateway {
           timestamp: new Date(),
         },
 
-        context: contextEngine.createSnapshot(requestId),
+        context:
+          contextEngine.createSnapshot(
+            requestId,
+          ),
 
         metadata: input.metadata,
       };
 
-      const intelligence = await intelligenceEngine.process(context);
+      const intelligence =
+        await intelligenceEngine.process(
+          context,
+        );
 
-      const outcome = requestOutcomeResolver.resolve(intelligence);
+      const outcome =
+        requestOutcomeResolver.resolve(
+          intelligence,
+        );
 
-      const response = await responseSynthesisGateway.synthesize(context, intelligence);
+      const response =
+        await responseSynthesisGateway.synthesize(
+          context,
+          intelligence,
+        );
 
-      requestStateManager.complete(requestId);
+      requestStateManager.complete(
+        requestId,
+      );
 
       return {
         requestId,
@@ -80,7 +116,10 @@ export class KeiRequestGateway {
         response,
       };
     } catch (error) {
-      requestStateManager.fail(requestId, error);
+      requestStateManager.fail(
+        requestId,
+        error,
+      );
 
       throw error;
     }
@@ -88,12 +127,16 @@ export class KeiRequestGateway {
 
   async processText(
     text: string,
-    metadata?: Readonly<Record<string, unknown>>,
+    metadata?: Readonly<
+      Record<string, unknown>
+    >,
   ): Promise<KeiRequestResult> {
     const normalizedText = text.trim();
 
     if (!normalizedText) {
-      throw new Error("A text request cannot be empty.");
+      throw new Error(
+        "A text request cannot be empty.",
+      );
     }
 
     return this.process({
@@ -105,7 +148,9 @@ export class KeiRequestGateway {
     });
   }
 
-  private resolveInputType(input: KeiRequestInput): IntelligenceInputType {
+  private resolveInputType(
+    input: KeiRequestInput,
+  ): IntelligenceInputType {
     if (input.audio) {
       return "audio";
     }
@@ -118,12 +163,23 @@ export class KeiRequestGateway {
   }
 
   private createRequestId(): string {
-    if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    if (
+      typeof crypto !== "undefined" &&
+      typeof crypto.randomUUID ===
+        "function"
+    ) {
       return crypto.randomUUID();
     }
 
-    return ["kei", Date.now(), Math.random().toString(36).slice(2)].join("-");
+    return [
+      "kei",
+      Date.now(),
+      Math.random()
+        .toString(36)
+        .slice(2),
+    ].join("-");
   }
 }
 
-export const keiRequestGateway = new KeiRequestGateway();
+export const keiRequestGateway =
+  new KeiRequestGateway();

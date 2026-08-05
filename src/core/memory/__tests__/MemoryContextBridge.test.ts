@@ -92,8 +92,13 @@ describe("MemoryContextBridge", () => {
 
     const result = await bridge.hydrate();
 
-    expect(memoryEngine.query).toHaveBeenCalledTimes(1);
-    expect(memoryEngine.query).toHaveBeenCalledWith({});
+    expect(
+      memoryEngine.query,
+    ).toHaveBeenCalledTimes(1);
+
+    expect(
+      memoryEngine.query,
+    ).toHaveBeenCalledWith({});
 
     expect(set).toHaveBeenCalledTimes(2);
 
@@ -112,7 +117,10 @@ describe("MemoryContextBridge", () => {
     );
 
     expect(result.entries).toEqual(entries);
-    expect(result.hydratedCount).toBe(2);
+
+    expect(
+      result.hydratedCount,
+    ).toBe(2);
   });
 
   it("does not hydrate expired memory entries", async () => {
@@ -201,7 +209,9 @@ describe("MemoryContextBridge", () => {
       entries[0],
     ]);
 
-    expect(result.hydratedCount).toBe(1);
+    expect(
+      result.hydratedCount,
+    ).toBe(1);
   });
 
   it("removes previously hydrated memory before rehydrating current memory", async () => {
@@ -255,7 +265,9 @@ describe("MemoryContextBridge", () => {
     };
 
     const set = vi.fn();
-    const remove = vi.fn().mockReturnValue(true);
+
+    const remove =
+      vi.fn().mockReturnValue(true);
 
     const contextEngine: ContextEngineContract = {
       set: set as ContextEngineContract["set"],
@@ -284,28 +296,42 @@ describe("MemoryContextBridge", () => {
 
     await bridge.hydrate();
 
-    expect(remove).not.toHaveBeenCalled();
+    expect(
+      remove,
+    ).not.toHaveBeenCalled();
 
     await bridge.hydrate();
 
-    expect(query).toHaveBeenCalledTimes(2);
+    expect(
+      query,
+    ).toHaveBeenCalledTimes(2);
 
-    expect(remove).toHaveBeenCalledTimes(1);
+    expect(
+      remove,
+    ).toHaveBeenCalledTimes(1);
 
-    expect(remove).toHaveBeenCalledWith(
+    expect(
+      remove,
+    ).toHaveBeenCalledWith(
       "memory.user.preference",
     );
 
-    expect(set).toHaveBeenCalledTimes(2);
+    expect(
+      set,
+    ).toHaveBeenCalledTimes(2);
 
-    expect(set).toHaveBeenNthCalledWith(
+    expect(
+      set,
+    ).toHaveBeenNthCalledWith(
       1,
       "memory.user.preference",
       "old value",
       "memory",
     );
 
-    expect(set).toHaveBeenNthCalledWith(
+    expect(
+      set,
+    ).toHaveBeenNthCalledWith(
       2,
       "memory.user.name",
       "Alex",

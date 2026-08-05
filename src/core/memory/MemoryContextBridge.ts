@@ -1,4 +1,5 @@
 ﻿import {
+  contextEngine,
   ContextNamespaces,
   createContextKey,
 } from "@/core/context";
@@ -6,6 +7,10 @@
 import type {
   ContextEngineContract,
 } from "@/core/context";
+
+import {
+  memoryEngine,
+} from "./KeiMemoryEngine";
 
 import type {
   MemoryEngineContract,
@@ -87,3 +92,9 @@ export class MemoryContextBridge
     this.hydratedKeys.clear();
   }
 }
+
+export const memoryContextBridge =
+  new MemoryContextBridge(
+    memoryEngine,
+    contextEngine,
+  );
