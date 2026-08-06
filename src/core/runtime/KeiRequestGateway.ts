@@ -9,9 +9,9 @@ import type {
 } from "@/core/intelligence";
 
 import {
+  conversationMemoryPersistence,
   memoryContextBridge,
 } from "@/core/memory";
-
 import { responseSynthesisGateway } from "@/core/response";
 
 import type {
@@ -100,14 +100,20 @@ export class KeiRequestGateway {
         );
 
       const response =
-        await responseSynthesisGateway.synthesize(
-          context,
-          intelligence,
-        );
+  await responseSynthesisGateway.synthesize(
+    context,
+    intelligence,
+  );
 
-      requestStateManager.complete(
-        requestId,
-      );
+await conversationMemoryPersistence.persist(
+  input,
+  intelligence,
+  response,
+);
+
+requestStateManager.complete(
+  requestId,
+);
 
       return {
         requestId,
