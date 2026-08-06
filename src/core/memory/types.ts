@@ -36,6 +36,10 @@ export interface MemoryEntry<T = MemoryValue> {
   readonly updatedAt: number;
 }
 
+export type MemoryQueryOrder =
+  | "oldest-first"
+  | "newest-first";
+
 export interface MemoryQuery {
   readonly key?: string;
 
@@ -46,6 +50,8 @@ export interface MemoryQuery {
   readonly minimumImportance?: number;
 
   readonly minimumConfidence?: number;
+
+  readonly order?: MemoryQueryOrder;
 
   readonly limit?: number;
 }

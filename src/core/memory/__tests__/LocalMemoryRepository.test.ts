@@ -241,4 +241,72 @@ describe("LocalMemoryRepository", () => {
       await repository.query({}),
     ).toEqual([]);
   });
+
+  it(
+    "returns newest memory entries first when requested",
+    async () => {
+      const oldest: MemoryEntry = {
+        id: "memory-oldest",
+        type: "short-term",
+        key: "conversation.latest",
+        value: "oldest",
+        source: "assistant",
+        metadata: {
+          importance: 0.5,
+          confidence: 1,
+          accessCount: 0,
+        },
+        createdAt: 1000,
+        updatedAt: 1000,
+      };
+
+      const middle: MemoryEntry = {
+        id: "memory-middle",
+        type: "short-term",
+        key: "conversation.latest",
+        value: "middle",
+        source: "assistant",
+        metadata: {
+          importance: 0.5,
+          confidence: 1,
+          accessCount: 0,
+        },
+        createdAt: 2000,
+        updatedAt: 2000,
+      };
+
+      const newest: MemoryEntry = {
+        id: "memory-newest",
+        type: "short-term",
+        key: "conversation.latest",
+        value: "newest",
+        source: "assistant",
+        metadata: {
+          importance: 0.5,
+          confidence: 1,
+          accessCount: 0,
+        },
+        createdAt: 3000,
+        updatedAt: 3000,
+      };
+
+      await repository.save(oldest);
+      await repository.save(middle);
+      await repository.save(newest);
+
+      const result =
+        await repository.query({
+          key: "conversation.latest",
+          type: "short-term",
+          source: "assistant",
+          order: "newest-first",
+          limit: 2,
+        });
+
+      expect(result).toEqual([
+        newest,
+        middle,
+      ]);
+    },
+  );
 });

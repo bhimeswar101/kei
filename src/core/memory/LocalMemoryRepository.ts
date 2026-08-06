@@ -79,6 +79,19 @@ export class LocalMemoryRepository
           query.minimumConfidence!,
       );
     }
+    if (query.order === "newest-first") {
+  entries = [...entries].sort(
+    (left, right) =>
+      right.createdAt - left.createdAt,
+  );
+}
+
+if (query.order === "oldest-first") {
+  entries = [...entries].sort(
+    (left, right) =>
+      left.createdAt - right.createdAt,
+  );
+}
 
     if (query.limit !== undefined) {
       entries = entries.slice(

@@ -6,4 +6,5 @@ export * from "./MemoryRepository";
 export * from "./LocalMemoryRepository";
 export * from "./KeiMemoryEngine";
 export * from "./MemoryContextBridge";
+export * from "./ConversationMemoryHistory";
 export * from "./ConversationMemoryPersistence";
