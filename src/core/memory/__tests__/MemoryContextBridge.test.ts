@@ -337,5 +337,210 @@ describe("MemoryContextBridge", () => {
       "Alex",
       "memory",
     );
-  });
+});
+  it(
+    "removes stale memory context when rehydration returns no entries",
+    async () => {
+      const entries: readonly MemoryEntry[] = [
+        {
+          id: "memory-old",
+          type: "long-term",
+          key: "user.preference",
+          value: "dark mode",
+          source: "user",
+          metadata: {
+            importance: 0.8,
+            confidence: 1,
+            accessCount: 0,
+          },
+          createdAt: 1000,
+          updatedAt: 1000,
+        },
+      ];
+
+      const query = vi
+        .fn()
+        .mockResolvedValueOnce(entries)
+        .mockResolvedValueOnce([]);
+
+      const memoryEngine: MemoryEngineContract = {
+        write: vi.fn(),
+        get: vi.fn(),
+        query,
+        remove: vi.fn(),
+        clear: vi.fn(),
+
+        getStatus: vi
+          .fn()
+          .mockReturnValue("idle"),
+
+        isBusy: vi
+          .fn()
+          .mockReturnValue(false),
+      };
+
+      const set = vi.fn();
+
+      const remove = vi
+        .fn()
+        .mockReturnValue(true);
+
+      const contextEngine: ContextEngineContract = {
+        set:
+          set as ContextEngineContract["set"],
+
+        get: vi.fn() as <
+          T extends ContextValue,
+        >(
+          key: string,
+        ) => T | undefined,
+
+        has: vi
+          .fn()
+          .mockReturnValue(false),
+
+        remove,
+
+        clear: vi.fn(),
+
+        createSnapshot: vi
+          .fn()
+          .mockReturnValue({
+            requestId: "request-1",
+            createdAt: 3000,
+            entries: new Map(),
+          } satisfies ContextSnapshot),
+      };
+
+      const bridge =
+        new MemoryContextBridge(
+          memoryEngine,
+          contextEngine,
+        );
+
+      const firstResult =
+        await bridge.hydrate();
+
+      expect(
+        firstResult.hydratedCount,
+      ).toBe(1);
+
+      expect(set).toHaveBeenCalledWith(
+        "memory.user.preference",
+        "dark mode",
+        "memory",
+      );
+
+      const secondResult =
+        await bridge.hydrate();
+
+      expect(
+        query,
+      ).toHaveBeenCalledTimes(2);
+
+      expect(
+        remove,
+      ).toHaveBeenCalledTimes(1);
+
+      expect(
+        remove,
+      ).toHaveBeenCalledWith(
+        "memory.user.preference",
+      );
+
+      expect(
+        secondResult.entries,
+      ).toEqual([]);
+
+      expect(
+        secondResult.hydratedCount,
+      ).toBe(0);
+
+      expect(
+        set,
+      ).toHaveBeenCalledTimes(1);
+    },
+  );
+    it(
+    "forwards the requested memory query during hydration",
+    async () => {
+      const query = vi
+        .fn()
+        .mockResolvedValue([]);
+
+      const memoryEngine: MemoryEngineContract = {
+        write: vi.fn(),
+        get: vi.fn(),
+        query,
+        remove: vi.fn(),
+        clear: vi.fn(),
+
+        getStatus: vi
+          .fn()
+          .mockReturnValue("idle"),
+
+        isBusy: vi
+          .fn()
+          .mockReturnValue(false),
+      };
+
+      const contextEngine: ContextEngineContract = {
+        set:
+          vi.fn() as ContextEngineContract["set"],
+
+        get: vi.fn() as <
+          T extends ContextValue,
+        >(
+          key: string,
+        ) => T | undefined,
+
+        has: vi
+          .fn()
+          .mockReturnValue(false),
+
+        remove: vi
+          .fn()
+          .mockReturnValue(false),
+
+        clear: vi.fn(),
+
+        createSnapshot: vi
+          .fn()
+          .mockReturnValue({
+            requestId: "request-1",
+            createdAt: 3000,
+            entries: new Map(),
+          } satisfies ContextSnapshot),
+      };
+
+      const bridge =
+        new MemoryContextBridge(
+          memoryEngine,
+          contextEngine,
+        );
+
+      const requestedQuery = {
+        type: "long-term" as const,
+        source: "user" as const,
+        minimumImportance: 0.8,
+        minimumConfidence: 0.9,
+        order: "newest-first" as const,
+        limit: 5,
+      };
+
+      await bridge.hydrate(
+        requestedQuery,
+      );
+
+      expect(
+        query,
+      ).toHaveBeenCalledTimes(1);
+
+      expect(
+        query,
+      ).toHaveBeenCalledWith(
+        requestedQuery,
+      );
+    },
+  );
 });
