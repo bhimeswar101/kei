@@ -7,8 +7,8 @@ import type {
   IntelligenceInputType,
   IntelligenceResult,
 } from "@/core/intelligence";
-
 import {
+  conversationMemoryRecall,
   conversationMemoryPersistence,
   memoryContextBridge,
 } from "@/core/memory";
@@ -63,6 +63,16 @@ export class KeiRequestGateway {
 
     try {
       await memoryContextBridge.hydrate();
+      const recalledConversation =
+  await conversationMemoryRecall.recall();
+
+if (recalledConversation) {
+  contextEngine.set(
+    "memory.conversation.recent",
+    recalledConversation,
+    "memory",
+  );
+}
 
       const context: IntelligenceContext = {
         requestId,

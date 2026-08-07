@@ -17,6 +17,7 @@ import {
 
 import {
   conversationMemoryPersistence,
+  conversationMemoryRecall,
   memoryContextBridge,
 } from "@/core/memory";
 
@@ -70,68 +71,97 @@ describe(
           };
         });
 
-        const createSnapshotSpy = vi.spyOn(
-          contextEngine,
-          "createSnapshot",
-        ).mockImplementation(
-          (requestId) => {
-            callOrder.push("snapshot");
-
-            return {
-              requestId,
-              createdAt: Date.now(),
-              entries: new Map([
-                [
-                  "memory.user.name",
-                  {
-                    key: "memory.user.name",
-                    value: "Alex",
-                    source: "memory",
-                    timestamp: Date.now(),
-                  },
-                ],
-              ]),
-            };
-          },
+        vi.spyOn(
+          conversationMemoryRecall,
+          "recall",
+        ).mockResolvedValue(
+          "Recent Conversation",
         );
 
-        const processSpy = vi.spyOn(
-          intelligenceEngine,
-          "process",
-        ).mockImplementation(
-          async (context) => {
-            callOrder.push(
-              "intelligence",
-            );
+        const createSnapshotSpy = vi
+          .spyOn(
+            contextEngine,
+            "createSnapshot",
+          )
+          .mockImplementation(
+            (requestId) => {
+              callOrder.push("snapshot");
 
-            return {
-              requestId:
-                context.requestId,
+              return {
+                requestId,
+                createdAt: Date.now(),
+                entries: new Map([
+                  [
+                    "memory.user.name",
+                    {
+                      key: "memory.user.name",
+                      value: "Alex",
+                      source: "memory",
+                      timestamp:
+                        Date.now(),
+                    },
+                  ],
+                  [
+                    "memory.conversation.recent",
+                    {
+                      key: "memory.conversation.recent",
+                      value:
+                        "Recent Conversation",
+                      source: "memory",
+                      timestamp:
+                        Date.now(),
+                    },
+                  ],
+                ]),
+              };
+            },
+          );
 
-              decision: {
-                type: "respond",
-                intent: "conversation",
-                requiresAction: false,
-                requiresPlanning: false,
-                requiresCapability: false,
-                requiresClarification:
-                  false,
-                confidence: 1,
-              },
+        const processSpy = vi
+          .spyOn(
+            intelligenceEngine,
+            "process",
+          )
+          .mockImplementation(
+            async (context) => {
+              callOrder.push(
+                "intelligence",
+              );
 
-              understanding: {
-                originalText:
-                  "Hello Kei",
-                normalizedText:
-                  "hello kei",
-                status: "understood",
-                requiresContext: false,
-                entities: [],
-                references: [],
-              },
-            };
-          },
-        );
+              return {
+                requestId:
+                  context.requestId,
+
+                decision: {
+                  type: "respond",
+                  intent:
+                    "conversation",
+                  requiresAction:
+                    false,
+                  requiresPlanning:
+                    false,
+                  requiresCapability:
+                    false,
+                  requiresClarification:
+                    false,
+                  confidence: 1,
+                },
+
+                understanding: {
+                  originalText:
+                    "Hello Kei",
+                  normalizedText:
+                    "hello kei",
+                  status:
+                    "understood",
+                  requiresContext:
+                    false,
+                  entities: [],
+                  references: [],
+                },
+              };
+            },
+          );
 
         vi.spyOn(
           responseSynthesisGateway,
@@ -141,8 +171,10 @@ describe(
             requestId:
               context.requestId,
             text: "Hello.",
-            strategy: "conversation",
-            source: "deterministic",
+            strategy:
+              "conversation",
+            source:
+              "deterministic",
             success: true,
             grounded: false,
             fallbackUsed: false,
@@ -164,6 +196,10 @@ describe(
 
         expect(
           memoryContextBridge.hydrate,
+        ).toHaveBeenCalledTimes(1);
+
+        expect(
+          conversationMemoryRecall.recall,
         ).toHaveBeenCalledTimes(1);
 
         expect(
@@ -204,8 +240,24 @@ describe(
           memoryEntry?.source,
         ).toBe("memory");
 
+        const conversationEntry =
+          intelligenceContext?.context.entries.get(
+            "memory.conversation.recent",
+          );
+
         expect(
-          result.intelligence.requestId,
+          conversationEntry,
+        ).toBeDefined();
+
+        expect(
+          conversationEntry?.value,
+        ).toBe(
+          "Recent Conversation",
+        );
+
+        expect(
+          result.intelligence
+            .requestId,
         ).toBe(result.requestId);
 
         expect(
@@ -228,6 +280,13 @@ describe(
         });
 
         vi.spyOn(
+          conversationMemoryRecall,
+          "recall",
+        ).mockResolvedValue(
+          "Recent Conversation",
+        );
+
+        vi.spyOn(
           intelligenceEngine,
           "process",
         ).mockImplementation(
@@ -237,10 +296,14 @@ describe(
 
             decision: {
               type: "respond",
-              intent: "conversation",
-              requiresAction: false,
-              requiresPlanning: false,
-              requiresCapability: false,
+              intent:
+                "conversation",
+              requiresAction:
+                false,
+              requiresPlanning:
+                false,
+              requiresCapability:
+                false,
               requiresClarification:
                 false,
               confidence: 1,
@@ -251,47 +314,54 @@ describe(
                 "Hello Kei",
               normalizedText:
                 "hello kei",
-              status: "understood",
-              requiresContext: false,
+              status:
+                "understood",
+              requiresContext:
+                false,
               entities: [],
               references: [],
             },
           }),
         );
 
-        const synthesizeSpy = vi.spyOn(
-          responseSynthesisGateway,
-          "synthesize",
-        ).mockImplementation(
-          async (context) => {
-            callOrder.push(
-              "synthesize",
-            );
+        const synthesizeSpy =
+          vi.spyOn(
+            responseSynthesisGateway,
+            "synthesize",
+          ).mockImplementation(
+            async (context) => {
+              callOrder.push(
+                "synthesize",
+              );
 
-            return {
-              requestId:
-                context.requestId,
-              text:
-                "Hello! How can I help?",
-              strategy:
-                "conversation",
-              source:
-                "deterministic",
-              success: true,
-              grounded: false,
-              fallbackUsed: false,
-            };
-          },
-        );
+              return {
+                requestId:
+                  context.requestId,
+                text:
+                  "Hello! How can I help?",
+                strategy:
+                  "conversation",
+                source:
+                  "deterministic",
+                success: true,
+                grounded: false,
+                fallbackUsed:
+                  false,
+              };
+            },
+          );
 
-        const persistSpy = vi.spyOn(
-          conversationMemoryPersistence,
-          "persist",
-        ).mockImplementation(
-          async () => {
-            callOrder.push("persist");
-          },
-        );
+        const persistSpy =
+          vi.spyOn(
+            conversationMemoryPersistence,
+            "persist",
+          ).mockImplementation(
+            async () => {
+              callOrder.push(
+                "persist",
+              );
+            },
+          );
 
         const gateway =
           new KeiRequestGateway();
@@ -306,6 +376,10 @@ describe(
         ).toHaveBeenCalledTimes(1);
 
         expect(
+          conversationMemoryRecall.recall,
+        ).toHaveBeenCalledTimes(1);
+
+        expect(
           persistSpy,
         ).toHaveBeenCalledTimes(1);
 
@@ -315,7 +389,8 @@ describe(
           {
             type: "text",
             text: "Hello Kei",
-            metadata: undefined,
+            metadata:
+              undefined,
           },
           result.intelligence,
           result.response,
