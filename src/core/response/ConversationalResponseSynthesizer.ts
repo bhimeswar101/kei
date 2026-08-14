@@ -28,9 +28,9 @@ export class ConversationalResponseSynthesizer
       );
     }
     responseGroundingGuard.assertStrategyGrounding(
-  input,
-  strategy,
-);
+      input,
+      strategy,
+    );
 
     const originalText =
       input.originalText?.trim();
@@ -74,3 +74,4 @@ export class ConversationalResponseSynthesizer
 
 export const conversationalResponseSynthesizer =
   new ConversationalResponseSynthesizer();
+
