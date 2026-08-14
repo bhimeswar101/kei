@@ -10,6 +10,8 @@ import { requestUnderstandingEngine } from "@/core/understanding";
 
 import { BaseIntelligenceEngine } from "./IntelligenceEngine";
 
+import { agentOrchestrator } from "@/core/agent";
+
 import type {
   IntelligenceContext,
   IntelligenceDecision,
@@ -120,9 +122,17 @@ export class KeiIntelligenceEngine extends BaseIntelligenceEngine {
       // 4.7 — Execute eligible plan
       const executionEligibility = executionInputBuilder.canExecute(resultBeforeExecution);
 
-      const execution = executionEligibility.allowed
-        ? await executionEngine.execute(executionInputBuilder.build(resultBeforeExecution))
-        : undefined;
+      let execution;
+      if (executionEligibility.allowed && resultBeforeExecution.planning?.plan) {
+        const agent = agentOrchestrator.createAgent(
+          context.requestId,
+          resultBeforeExecution.planning.plan.goal,
+        );
+        execution = await agent.run(resultBeforeExecution.planning.plan);
+        agentOrchestrator.removeAgent(agent.id);
+      } else {
+        execution = undefined;
+      }
 
       /*
        * Intelligence ends with structured
