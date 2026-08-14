@@ -1,20 +1,15 @@
 import { BasePlugin } from "../../core/plugins/BasePlugin";
 import type { PluginMetadata } from "../../core/plugins/types";
-
-interface SpeechRecognitionLike {
-  start(): void;
-  stop(): void;
-}
-
-type SpeechRecognitionConstructor = new () => SpeechRecognitionLike;
-
-interface WindowWithSpeechRecognition extends Window {
-  SpeechRecognition?: SpeechRecognitionConstructor;
-  webkitSpeechRecognition?: SpeechRecognitionConstructor;
-}
+import {
+  AudioCaptureService,
+  AudioPlaybackService,
+  VadService,
+  WebSocketStreamingClient,
+  InteractionCoordinator,
+} from "../../core/interaction";
 
 export class VoicePlugin extends BasePlugin {
-  private recognition: SpeechRecognitionLike | null = null;
+  private coordinator: InteractionCoordinator | null = null;
 
   constructor(
     metadata: PluginMetadata = {
@@ -34,22 +29,32 @@ export class VoicePlugin extends BasePlugin {
 
     this.setState("starting");
 
-    if (typeof window === "undefined") {
+    try {
+      const captureService = new AudioCaptureService();
+      const playbackService = new AudioPlaybackService();
+      const vadService = new VadService();
+      const streamingClient = new WebSocketStreamingClient();
+
+      this.coordinator = new InteractionCoordinator(
+        captureService,
+        playbackService,
+        vadService,
+        streamingClient
+      );
+
+      await this.coordinator.start();
+      this.setState("running");
+    } catch (error) {
+      console.error("[VoicePlugin] Failed to start:", error);
       this.setState("error");
-      return;
+      throw error;
     }
+  }
 
-    const recognitionWindow = window as WindowWithSpeechRecognition;
-    const RecognitionCtor =
-      recognitionWindow.SpeechRecognition ?? recognitionWindow.webkitSpeechRecognition;
-
-    if (!RecognitionCtor) {
-      this.setState("error");
-      return;
+  async speak(text: string): Promise<void> {
+    if (this.coordinator) {
+      await this.coordinator.speak(text);
     }
-
-    this.recognition = new RecognitionCtor();
-    this.setState("running");
   }
 
   async stop(): Promise<void> {
@@ -58,8 +63,17 @@ export class VoicePlugin extends BasePlugin {
       return;
     }
 
-    this.recognition?.stop();
-    this.recognition = null;
+    this.setState("stopping");
+    
+    if (this.coordinator) {
+      try {
+        await this.coordinator.stop();
+      } catch (error) {
+        console.error("[VoicePlugin] Error stopping coordinator:", error);
+      }
+      this.coordinator = null;
+    }
+    
     this.setState("stopped");
   }
 }

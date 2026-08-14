@@ -3,6 +3,8 @@ import { BaseExecutionEngine } from "./ExecutionEngine";
 import {
   stepExecutionResultValidator,
 } from "./StepExecutionResultValidator";
+import { eventBus } from "@/core/events";
+import { EVENTS } from "@/shared/constants/events";
 
 import type {
   ExecutionContext,
@@ -104,6 +106,62 @@ export class KeiExecutionEngine extends BaseExecutionEngine {
           };
         }
 
+        // Verify permissions if required
+        const capabilityDef = step.capability;
+        if (capabilityDef.requiresPermission) {
+          let permission: any = null;
+          if (capabilityDef.category === "file-system") {
+            permission = "filesystem";
+          } else if (capabilityDef.category === "automation") {
+            permission = "notifications";
+          } else if (capabilityDef.id === "microphone") {
+            permission = "microphone";
+          } else if (capabilityDef.id === "camera") {
+            permission = "camera";
+          }
+
+          if (permission) {
+            const { permissionManager } = await import("@/core/permissions");
+            let status = permissionManager.getStatus(permission);
+            if (status === "prompt") {
+              status = await permissionManager.request(permission);
+            }
+
+            if (status !== "granted") {
+              const failedResult: StepExecutionResult = {
+                stepId: step.id,
+                capability: step.capability,
+                status: "failed",
+                error: `Permission "${permission}" denied for capability "${capabilityDef.id}".`,
+                startedAt: new Date(),
+                completedAt: new Date(),
+              };
+
+              stepResults.push(failedResult);
+              this.failExecution();
+
+              await eventBus.emit(EVENTS.TOOL_EXECUTED, {
+                capabilityId: capabilityDef.id,
+                status: "failed",
+                success: false,
+                stepId: step.id,
+                error: failedResult.error,
+                durationMs: 0,
+              });
+
+              return {
+                requestId: context.requestId,
+                planId: context.plan.id,
+                status: "failed",
+                steps: stepResults,
+                startedAt,
+                completedAt: new Date(),
+                error: failedResult.error,
+              };
+            }
+          }
+        }
+
         const handler =
           capabilityHandlerRegistry.resolve(
             step.capability,
@@ -133,6 +191,15 @@ export class KeiExecutionEngine extends BaseExecutionEngine {
 
           this.failExecution();
 
+          await eventBus.emit(EVENTS.TOOL_EXECUTED, {
+            capabilityId: step.capability.id,
+            status: "failed",
+            success: false,
+            stepId: step.id,
+            error: failedResult.error,
+            durationMs: 0,
+          });
+
           return {
             requestId:
               context.requestId,
@@ -153,6 +220,7 @@ export class KeiExecutionEngine extends BaseExecutionEngine {
           };
         }
 
+        const stepStartedAt = new Date();
         const stepResult =
           await handler.execute({
             requestId:
@@ -166,6 +234,7 @@ export class KeiExecutionEngine extends BaseExecutionEngine {
             previousResults:
               stepResults,
           });
+        const durationMs = Date.now() - stepStartedAt.getTime();
 
         const validation =
           stepExecutionResultValidator.validate(
@@ -199,6 +268,15 @@ export class KeiExecutionEngine extends BaseExecutionEngine {
 
           this.failExecution();
 
+          await eventBus.emit(EVENTS.TOOL_EXECUTED, {
+            capabilityId: step.capability.id,
+            status: "failed",
+            success: false,
+            stepId: step.id,
+            error: failedResult.error,
+            durationMs,
+          });
+
           return {
             requestId:
               context.requestId,
@@ -220,6 +298,15 @@ export class KeiExecutionEngine extends BaseExecutionEngine {
         }
 
         stepResults.push(stepResult);
+
+        await eventBus.emit(EVENTS.TOOL_EXECUTED, {
+          capabilityId: step.capability.id,
+          status: stepResult.status,
+          success: stepResult.status === "completed",
+          stepId: step.id,
+          error: stepResult.error,
+          durationMs,
+        });
 
         if (
           stepResult.status ===

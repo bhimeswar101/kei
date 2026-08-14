@@ -62,6 +62,46 @@ export class PermissionManager
     storage.remove(STORAGE_KEY);
   }
 
+  async request(
+    permission: Permission,
+  ): Promise<PermissionStatus> {
+    if (permission === "microphone") {
+      if (
+        typeof navigator === "undefined" ||
+        !navigator.mediaDevices ||
+        !navigator.mediaDevices.getUserMedia
+      ) {
+        this.deny(permission);
+        return "denied";
+      }
+
+      try {
+        const { voiceConfig } = await import("@/core/config/voice.config");
+        const stream = await navigator.mediaDevices.getUserMedia({
+          audio: {
+            sampleRate: voiceConfig.input.sampleRate,
+            channelCount: voiceConfig.input.channels,
+            echoCancellation: voiceConfig.echoCancellation,
+            noiseSuppression: voiceConfig.noiseSuppression,
+            autoGainControl: voiceConfig.autoGainControl,
+          },
+        });
+
+        for (const track of stream.getTracks()) {
+          track.stop();
+        }
+
+        this.grant(permission);
+        return "granted";
+      } catch {
+        this.deny(permission);
+        return "denied";
+      }
+    }
+
+    return this.getStatus(permission);
+  }
+
   private update(
     permission: Permission,
     status: PermissionStatus,

@@ -13,6 +13,8 @@ import {
   memoryContextBridge,
 } from "@/core/memory";
 import { responseSynthesisGateway } from "@/core/response";
+import { pluginManager } from "@/core/plugins";
+import type { VoicePlugin } from "@/plugins/voice/VoicePlugin";
 
 import type {
   SynthesizedResponse,
@@ -120,6 +122,11 @@ await conversationMemoryPersistence.persist(
   intelligence,
   response,
 );
+
+const voicePlugin = pluginManager.get("voice") as VoicePlugin | undefined;
+if (voicePlugin && voicePlugin.isRunning()) {
+  void voicePlugin.speak(response.text);
+}
 
 requestStateManager.complete(
   requestId,

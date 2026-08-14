@@ -23,4 +23,6 @@ export interface PermissionManagerContract {
   reset(permission: Permission): void;
 
   resetAll(): void;
+
+  request(permission: Permission): Promise<PermissionStatus>;
 }

@@ -8,7 +8,18 @@ import { brain } from "@/core/brain";
 
 import { registerBuiltinCapabilities } from "@/core/capabilities";
 
-import { applicationOpenHandler, capabilityHandlerRegistry } from "@/core/execution";
+import {
+  capabilityHandlerRegistry,
+  applicationOpenHandler,
+  applicationCloseHandler,
+  browserOpenHandler,
+  browserSearchHandler,
+  mediaPlayHandler,
+  mediaPauseHandler,
+  fileSearchHandler,
+  fileReadHandler,
+  automationCreateHandler,
+} from "@/core/execution";
 
 import { ErrorCodes, handleError } from "@/core/errors";
 
@@ -24,8 +35,9 @@ import {
 } from "@/core/platform";
 
 import { serviceRegistry } from "@/core/services";
-
 import { storage } from "@/core/storage";
+import { pluginManager } from "@/core/plugins";
+import { VoicePlugin } from "@/plugins/voice";
 
 import { desktopNativeHostTransport } from "@/integrations/native";
 
@@ -105,6 +117,30 @@ export class AppKernel implements AppKernelContract {
       if (!capabilityHandlerRegistry.has(applicationOpenHandler.capabilityId)) {
         capabilityHandlerRegistry.register(applicationOpenHandler);
       }
+      if (!capabilityHandlerRegistry.has(applicationCloseHandler.capabilityId)) {
+        capabilityHandlerRegistry.register(applicationCloseHandler);
+      }
+      if (!capabilityHandlerRegistry.has(browserOpenHandler.capabilityId)) {
+        capabilityHandlerRegistry.register(browserOpenHandler);
+      }
+      if (!capabilityHandlerRegistry.has(browserSearchHandler.capabilityId)) {
+        capabilityHandlerRegistry.register(browserSearchHandler);
+      }
+      if (!capabilityHandlerRegistry.has(mediaPlayHandler.capabilityId)) {
+        capabilityHandlerRegistry.register(mediaPlayHandler);
+      }
+      if (!capabilityHandlerRegistry.has(mediaPauseHandler.capabilityId)) {
+        capabilityHandlerRegistry.register(mediaPauseHandler);
+      }
+      if (!capabilityHandlerRegistry.has(fileSearchHandler.capabilityId)) {
+        capabilityHandlerRegistry.register(fileSearchHandler);
+      }
+      if (!capabilityHandlerRegistry.has(fileReadHandler.capabilityId)) {
+        capabilityHandlerRegistry.register(fileReadHandler);
+      }
+      if (!capabilityHandlerRegistry.has(automationCreateHandler.capabilityId)) {
+        capabilityHandlerRegistry.register(automationCreateHandler);
+      }
 
       console.info("[Kernel] Execution Handlers registered.");
 
@@ -128,13 +164,19 @@ export class AppKernel implements AppKernelContract {
 
       console.info("[Kernel] Brain ready.");
 
-      // --------------------------------------------------
-      // Background services
-      // --------------------------------------------------
-
       await backgroundServiceManager.startAll();
 
       console.info("[Kernel] Background Services ready.");
+
+      // --------------------------------------------------
+      // Plugins
+      // --------------------------------------------------
+
+      const voicePlugin = new VoicePlugin();
+      pluginManager.register(voicePlugin);
+      await pluginManager.startAll();
+
+      console.info("[Kernel] Plugins registered and started.");
 
       // --------------------------------------------------
       // Kernel ready
@@ -170,11 +212,18 @@ export class AppKernel implements AppKernelContract {
 
       // --------------------------------------------------
       // Background services
-      // --------------------------------------------------
-
       await backgroundServiceManager.stopAll();
 
       console.info("[Kernel] Background Services stopped.");
+
+      // --------------------------------------------------
+      // Plugins cleanup
+      // --------------------------------------------------
+
+      await pluginManager.stopAll();
+      pluginManager.clear();
+
+      console.info("[Kernel] Plugins stopped and cleared.");
 
       // --------------------------------------------------
       // Intelligence layer
