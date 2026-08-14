@@ -1,151 +1,175 @@
-import {
-  describe,
-  expect,
-  it,
-  vi,
-} from "vitest";
+import { describe, expect, it, vi } from "vitest";
+
+import type { IntelligenceResult } from "@/core/intelligence";
+import type { SynthesizedResponse } from "@/core/response";
+import type { KeiRequestInput } from "@/core/runtime";
 
 import {
   ConversationMemoryPersistence,
 } from "../ConversationMemoryPersistence";
 
 import type {
+  MemoryImportanceScorerContract,
+} from "../MemoryImportanceScorer";
+
+import type {
+  MemoryRetentionPolicyContract,
+} from "../MemoryRetentionPolicy";
+
+import type {
   MemoryEngineContract,
 } from "../types";
 
-describe(
-  "ConversationMemoryPersistence",
-  () => {
-    it(
-      "writes the conversation into memory",
-      async () => {
-        const write = vi.fn();
+describe("ConversationMemoryPersistence", () => {
+  it("writes the conversation into memory", async () => {
+    const write = vi.fn();
 
-        const memoryEngine: MemoryEngineContract = {
-          write,
+    /*
+     * MemoryEngineContract contains additional methods
+     * such as get, query, remove, clear, etc.
+     *
+     * This test only needs the write capability, so we
+     * intentionally provide a minimal test double.
+     */
+    const memoryEngine =
+      {
+        write,
+      } as unknown as MemoryEngineContract;
 
-          get: vi.fn(),
+    const importanceScorer: MemoryImportanceScorerContract = {
+      score: vi.fn().mockReturnValue(0.75),
+    };
 
-          query: vi.fn(),
+    const retentionPolicy: MemoryRetentionPolicyContract = {
+      shouldPersist: vi.fn().mockReturnValue(true),
+    };
 
-          remove: vi.fn(),
+    const persistence =
+      new ConversationMemoryPersistence(
+        memoryEngine,
+        importanceScorer,
+        retentionPolicy,
+      );
 
-          clear: vi.fn(),
+    const input = {
+      text: "What is our project roadmap?",
+    } as KeiRequestInput;
 
-          getStatus: vi.fn().mockReturnValue(
-            "idle",
-          ),
+    const intelligence =
+      {} as IntelligenceResult;
 
-          isBusy: vi.fn().mockReturnValue(
-            false,
-          ),
-        };
+    const response = {
+      text: "Our roadmap is focused on building Kei.",
+    } as SynthesizedResponse;
 
-        const persistence =
-          new ConversationMemoryPersistence(
-            memoryEngine,
-          );
-
-        await persistence.persist(
-          {
-            text: "Hello Kei",
-            type: "text",
-          },
-          {} as never,
-          {
-            requestId: "request-1",
-            text: "Hello! How can I help?",
-            strategy: "conversation",
-            source: "provider",
-            success: true,
-            grounded: false,
-            fallbackUsed: false,
-          },
-        );
-
-        expect(write).toHaveBeenCalledTimes(
-          1,
-        );
-
-        expect(write).toHaveBeenCalledWith({
-          type: "short-term",
-
-          key: "conversation.latest",
-
-          value: {
-            userMessage: "Hello Kei",
-
-            assistantMessage:
-              "Hello! How can I help?",
-          },
-
-          source: "assistant",
-        });
-      },
+    await persistence.persist(
+      input,
+      intelligence,
+      response,
     );
 
-    it(
-      "stores only conversation data needed for recall",
-      async () => {
-        const write = vi.fn();
+    expect(write).toHaveBeenCalledTimes(1);
+  });
 
-        const memoryEngine: MemoryEngineContract = {
-          write,
+  it("does not persist when retention policy rejects the conversation", async () => {
+    const write = vi.fn();
 
-          get: vi.fn(),
+    const memoryEngine =
+      {
+        write,
+      } as unknown as MemoryEngineContract;
 
-          query: vi.fn(),
+    const importanceScorer: MemoryImportanceScorerContract = {
+      score: vi.fn().mockReturnValue(0.2),
+    };
 
-          remove: vi.fn(),
+    const retentionPolicy: MemoryRetentionPolicyContract = {
+      shouldPersist: vi.fn().mockReturnValue(false),
+    };
 
-          clear: vi.fn(),
+    const persistence =
+      new ConversationMemoryPersistence(
+        memoryEngine,
+        importanceScorer,
+        retentionPolicy,
+      );
 
-          getStatus: vi.fn().mockReturnValue(
-            "idle",
-          ),
+    const input = {
+      text: "What time is it?",
+    } as KeiRequestInput;
 
-          isBusy: vi.fn().mockReturnValue(
-            false,
-          ),
-        };
+    const intelligence =
+      {} as IntelligenceResult;
 
-        const persistence =
-          new ConversationMemoryPersistence(
-            memoryEngine,
-          );
+    const response = {
+      text: "It is currently afternoon.",
+    } as SynthesizedResponse;
 
-        await persistence.persist(
-          {
-            text: "Hello Kei",
-            type: "text",
-          },
-          {} as never,
-          {
-            requestId: "request-1",
-            text: "Hello! How can I help?",
-            strategy: "conversation",
-            source: "provider",
-            success: true,
-            grounded: false,
-            fallbackUsed: false,
-          },
-        );
-
-        expect(write).toHaveBeenCalledWith({
-          type: "short-term",
-
-          key: "conversation.latest",
-
-          value: {
-            userMessage: "Hello Kei",
-
-            assistantMessage:
-              "Hello! How can I help?",
-          },
-
-          source: "assistant",
-        });
-      },
+    await persistence.persist(
+      input,
+      intelligence,
+      response,
     );
-  },
-);
+
+    expect(write).not.toHaveBeenCalled();
+  });
+
+  it("stores only conversation data needed for recall", async () => {
+    const write = vi.fn();
+
+    const memoryEngine =
+      {
+        write,
+      } as unknown as MemoryEngineContract;
+
+    const importanceScorer: MemoryImportanceScorerContract = {
+      score: vi.fn().mockReturnValue(0.5),
+    };
+
+    const retentionPolicy: MemoryRetentionPolicyContract = {
+      shouldPersist: vi.fn().mockReturnValue(true),
+    };
+
+    const persistence =
+      new ConversationMemoryPersistence(
+        memoryEngine,
+        importanceScorer,
+        retentionPolicy,
+      );
+
+    const input = {
+      text: "What is our project roadmap?",
+    } as KeiRequestInput;
+
+    const intelligence =
+      {} as IntelligenceResult;
+
+    const response = {
+      text: "Our roadmap is focused on building Kei.",
+    } as SynthesizedResponse;
+
+    await persistence.persist(
+      input,
+      intelligence,
+      response,
+    );
+
+    expect(write).toHaveBeenCalledWith({
+      type: "short-term",
+
+      key: "conversation.latest",
+
+      value: {
+        userMessage:
+          "What is our project roadmap?",
+
+        assistantMessage:
+          "Our roadmap is focused on building Kei.",
+      },
+
+      source: "assistant",
+
+      importance: 0.5,
+    });
+  });
+});

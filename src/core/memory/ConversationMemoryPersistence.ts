@@ -2,13 +2,17 @@ import type { IntelligenceResult } from "@/core/intelligence";
 import type { SynthesizedResponse } from "@/core/response";
 import type { KeiRequestInput } from "@/core/runtime";
 
-import {
-  memoryEngine as defaultMemoryEngine,
-} from "./KeiMemoryEngine";
+import { memoryEngine as defaultMemoryEngine } from "./KeiMemoryEngine";
 
-import type {
-  MemoryEngineContract,
-} from "./types";
+import { memoryImportanceScorer as defaultImportanceScorer } from "./MemoryImportanceScorer";
+
+import { memoryRetentionPolicy as defaultRetentionPolicy } from "./MemoryRetentionPolicy";
+
+import type { MemoryImportanceScorerContract } from "./MemoryImportanceScorer";
+
+import type { MemoryRetentionPolicyContract } from "./MemoryRetentionPolicy";
+
+import type { MemoryEngineContract } from "./types";
 
 export interface ConversationMemoryPersistenceContract {
   persist(
@@ -18,39 +22,58 @@ export interface ConversationMemoryPersistenceContract {
   ): Promise<void>;
 }
 
-export class ConversationMemoryPersistence
-  implements ConversationMemoryPersistenceContract
-{
+export class ConversationMemoryPersistence implements ConversationMemoryPersistenceContract {
   private readonly memoryEngine: MemoryEngineContract;
 
+  private readonly importanceScorer: MemoryImportanceScorerContract;
+
+  private readonly retentionPolicy: MemoryRetentionPolicyContract;
+
   constructor(
-  memoryEngine: MemoryEngineContract =
-    defaultMemoryEngine,
-) {
-  this.memoryEngine = memoryEngine;
-}
+    memoryEngine: MemoryEngineContract = defaultMemoryEngine,
+
+    importanceScorer: MemoryImportanceScorerContract = defaultImportanceScorer,
+
+    retentionPolicy: MemoryRetentionPolicyContract = defaultRetentionPolicy,
+  ) {
+    this.memoryEngine = memoryEngine;
+
+    this.importanceScorer = importanceScorer;
+
+    this.retentionPolicy = retentionPolicy;
+  }
 
   async persist(
-  input: KeiRequestInput,
-  intelligence: IntelligenceResult,
-  response: SynthesizedResponse,
-): Promise<void> {
-  void intelligence;
+    input: KeiRequestInput,
+    intelligence: IntelligenceResult,
+    response: SynthesizedResponse,
+  ): Promise<void> {
+    void intelligence;
 
-  await this.memoryEngine.write({
-    type: "short-term",
+    const importance = this.importanceScorer.score(input.text ?? "", response.text);
 
-    key: "conversation.latest",
+    const shouldPersist = this.retentionPolicy.shouldPersist(importance);
 
-    value: {
-      userMessage: input.text,
+    if (!shouldPersist) {
+      return;
+    }
 
-      assistantMessage: response.text,
-    },
+    await this.memoryEngine.write({
+      type: "short-term",
 
-    source: "assistant",
-  });
+      key: "conversation.latest",
+
+      value: {
+        userMessage: input.text,
+
+        assistantMessage: response.text,
+      },
+
+      source: "assistant",
+
+      importance,
+    });
+  }
 }
-}
-export const conversationMemoryPersistence =
-  new ConversationMemoryPersistence();
+
+export const conversationMemoryPersistence = new ConversationMemoryPersistence();
