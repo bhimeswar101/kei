@@ -4,6 +4,7 @@ import {
 import {
   responseGroundingGuard,
 } from "./ResponseGroundingGuard";
+import { personalityManager } from "@/core/personality";
 import type {
   ConversationalResponse,
   ConversationalResponseSynthesizerContract,
@@ -59,16 +60,15 @@ export class ConversationalResponseSynthesizer
   private buildContext(
     originalText: string,
   ): string {
-    return [
-      "You are responding as Kei.",
-      "",
+    const detailLines = [
       "User request:",
       originalText,
       "",
       "Respond naturally and helpfully.",
       "Answer the user's request directly.",
       "Do not claim that an external action was performed.",
-    ].join("\n");
+    ];
+    return personalityManager.buildSystemPrompt(detailLines.join("\n"));
   }
 }
 

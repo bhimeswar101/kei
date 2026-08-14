@@ -2,6 +2,8 @@ import {
   clarificationResponseSynthesizer,
 } from "./ClarificationResponseSynthesizer";
 
+import { personalityManager } from "@/core/personality";
+
 import {
   conversationalResponseSynthesizer,
 } from "./ConversationalResponseSynthesizer";
@@ -151,21 +153,19 @@ export class ResponseContentBuilder
     const originalText =
       input.originalText?.trim();
 
-    const lines: string[] = [
-      "You are responding as Kei.",
-      "",
+    const detailLines: string[] = [
       "The requested action completed successfully during verified execution.",
     ];
 
     if (originalText) {
-      lines.push(
+      detailLines.push(
         "",
         "User request:",
         originalText,
       );
     }
 
-    lines.push(
+    detailLines.push(
       "",
       "Verified execution summary:",
       response.summary,
@@ -176,9 +176,11 @@ export class ResponseContentBuilder
       "Do not claim that an unexecuted step was completed.",
     );
 
+    const prompt = personalityManager.buildSystemPrompt(detailLines.join("\n"));
+
     return {
       strategy: response.strategy,
-      content: lines.join("\n"),
+      content: prompt,
       grounded: response.grounded,
       requiresProvider: true,
     };
@@ -214,23 +216,22 @@ export class ResponseContentBuilder
       );
     }
 
+    const detailLines = [
+      "The requested action has not completed yet.",
+      "",
+      "Verified execution summary:",
+      response.summary,
+      "",
+      "Respond briefly without claiming success, failure, or cancellation.",
+      "Do not invent an execution outcome.",
+    ];
+
+    const prompt = personalityManager.buildSystemPrompt(detailLines.join("\n"));
+
     return {
       strategy: response.strategy,
-
-      content: [
-        "You are responding as Kei.",
-        "",
-        "The requested action has not completed yet.",
-        "",
-        "Verified execution summary:",
-        response.summary,
-        "",
-        "Respond briefly without claiming success, failure, or cancellation.",
-        "Do not invent an execution outcome.",
-      ].join("\n"),
-
+      content: prompt,
       grounded: response.grounded,
-
       requiresProvider: true,
     };
   }

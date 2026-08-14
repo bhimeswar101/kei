@@ -14,4 +14,6 @@ export const EVENTS = {
   AGENT_FAILED: "agent:failed",
   AGENT_CANCELLED: "agent:cancelled",
   AGENT_REPLANNED: "agent:replanned",
+
+  PERSONALITY_EMOTION_CHANGED: "personality:emotion:changed",
 } as const;

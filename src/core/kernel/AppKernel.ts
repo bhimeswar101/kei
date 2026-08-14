@@ -25,6 +25,8 @@ import { ErrorCodes, handleError } from "@/core/errors";
 
 import { eventBus } from "@/core/events";
 
+import { personalityManager } from "@/core/personality";
+
 import { permissionManager } from "@/core/permissions";
 
 import {
@@ -64,6 +66,7 @@ export class AppKernel implements AppKernelContract {
       void storage;
       void permissionManager;
       void serviceRegistry;
+      void personalityManager;
 
       console.info("[Kernel] Event Bus ready.");
 
