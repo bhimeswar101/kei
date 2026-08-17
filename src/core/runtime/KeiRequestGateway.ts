@@ -14,6 +14,7 @@ import {
 } from "@/core/memory";
 import { responseSynthesisGateway } from "@/core/response";
 import { pluginManager } from "@/core/plugins";
+import { pluginMiddleware } from "@/core/plugins/PluginMiddleware";
 import type { VoicePlugin } from "@/plugins/voice/VoicePlugin";
 
 import type {
@@ -64,6 +65,7 @@ export class KeiRequestGateway {
     requestStateManager.begin(requestId);
 
     try {
+      await pluginMiddleware.executePreRequestObservers(input);
       await memoryContextBridge.hydrate();
       const recalledConversation =
   await conversationMemoryRecall.recall();
@@ -132,12 +134,16 @@ requestStateManager.complete(
   requestId,
 );
 
-      return {
+      const result = {
         requestId,
         outcome,
         intelligence,
         response,
       };
+
+      await pluginMiddleware.executePostResponseObservers(result);
+
+      return result;
     } catch (error) {
       requestStateManager.fail(
         requestId,

@@ -17,6 +17,7 @@ export class VoicePlugin extends BasePlugin {
       name: "Voice Plugin",
       version: "0.1.0",
       description: "Provides a browser-based voice interaction hook for the assistant.",
+      permissions: [],
     },
   ) {
     super(metadata);

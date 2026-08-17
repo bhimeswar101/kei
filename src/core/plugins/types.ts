@@ -12,6 +12,7 @@ export interface PluginMetadata {
   version: string;
   author?: string;
   description?: string;
+  permissions: readonly string[];
 }
 
 export interface PluginContract {
